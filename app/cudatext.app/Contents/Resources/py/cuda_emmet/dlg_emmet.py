@@ -85,19 +85,18 @@ class DialogEmmet:
 
 
     def result(self, no_stops):
-        
+
         text = dlg_proc(self.h, DLG_CTL_PROP_GET, name='input')['val']
         if text:
             text = self.do_expand(text)
-            if text and no_stops:
-                for i in range(10):
-                    text = text.replace('${%d}'%i, '')
+        if text and no_stops:
+            for i in range(10):
+                text = text.replace('${%d}'%i, '')
         return text
 
     def on_edit_change(self, id_dlg, id_ctl, data='', info=''):
 
-        text = self.result(False) # better keep tabstops
-        if text:
+        if text := self.result(False):
             s = text.replace('\t', '    ')
             s = s.split('\n')
             s = '\t'.join(s)
@@ -114,8 +113,7 @@ class DialogEmmet:
 
     def on_copy_click(self, id_dlg, id_ctl, data='', info=''):
 
-        text = self.result(True)
-        if text:
+        if text := self.result(True):
             app_proc(PROC_SET_CLIP, text)
 
     def show(self):
@@ -133,11 +131,11 @@ class DialogEmmet:
     def pos_load(self):
 
         x = int(ini_read(fn_ini, 'emmet', 'x', '-1'))
-        y = int(ini_read(fn_ini, 'emmet', 'y', '-1'))
-        w = int(ini_read(fn_ini, 'emmet', 'w', '-1'))
+        if x<0:
+            return
         h = int(ini_read(fn_ini, 'emmet', 'h', '-1'))
-        if x<0: return
-
+        w = int(ini_read(fn_ini, 'emmet', 'w', '-1'))
+        y = int(ini_read(fn_ini, 'emmet', 'y', '-1'))
         dlg_proc(self.h, DLG_PROP_SET, prop={'x':x, 'y':y, 'w':w, 'h':h, })
 
     def pos_save(self):

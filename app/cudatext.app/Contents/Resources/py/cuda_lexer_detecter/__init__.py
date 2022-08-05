@@ -27,15 +27,14 @@ class Command:
             if '.' in s:
                 ext2 = s[s.rfind('.')+1:] + '.' + ext1
 
-        if ext1:
-            if ini_read(config_file, config_section, ext1, '')=='1':
-                return
+        if ext1 and ini_read(config_file, config_section, ext1, '') == '1':
+            return
 
         #print('Lexer detecter: name, ext1, ext2:', name, ext1, ext2)
         lexers = []
 
         #print('Lexer detecter: search by name:', '/'+name)
-        lex = TYPES.get('/'+name, '')
+        lex = TYPES.get(f'/{name}', '')
         if lex:
             lexers += lex
 
@@ -81,9 +80,8 @@ class Command:
             if res == len(items)-1:
                 ini_write(config_file, config_section, ext1, '1')
                 return
-        else:
-            if res == len(items)-1:
-                return
+        elif res == len(items)-1:
+            return
 
         lex = lexers[res]
         #print('Detected lexer:', lex)

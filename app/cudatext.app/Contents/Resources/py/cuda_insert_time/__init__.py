@@ -37,8 +37,9 @@ def get_format_lines():
 def get_default_format():
     with open(ini, 'r') as f:
         res = f.read().splitlines()
-    res = [s.lstrip(DEFAULT_CHAR) for s in res if s and s.startswith(DEFAULT_CHAR)]
-    if res:
+    if res := [
+        s.lstrip(DEFAULT_CHAR) for s in res if s and s.startswith(DEFAULT_CHAR)
+    ]:
         return res[0]
 
 def do_format(s):

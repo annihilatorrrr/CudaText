@@ -40,18 +40,22 @@ class Command:
         if not fn: return
 
         enc = ed.get_prop(PROP_ENC, '')
-        #convert value to python
-        enc2 = REPLACE_ENC.get(enc, None)
-        if enc2: enc = enc2
-
+        if enc2 := REPLACE_ENC.get(enc, None):
+            enc = enc2
         lines_cur = ed.get_text_all().splitlines()
         lines_orig = open(fn, 'r', encoding=enc).read().splitlines()
-        diff = list(difflib.unified_diff(lines_orig, lines_cur,
-            fn+' (disk)',
-            fn+' (editor)',
-            lineterm=''))
+        diff = list(
+            difflib.unified_diff(
+                lines_orig,
+                lines_cur,
+                f'{fn} (disk)',
+                f'{fn} (editor)',
+                lineterm='',
+            )
+        )
 
-        if diff==[]:
+
+        if not diff:
             msg_box(_('File is not changed'), MB_OK+MB_ICONINFO)
             return
 
@@ -169,11 +173,11 @@ class Command:
     def pos_load(self):
 
         x = int(ini_read(fn_ini, 'show_unsaved', 'x', '-1'))
-        y = int(ini_read(fn_ini, 'show_unsaved', 'y', '-1'))
-        w = int(ini_read(fn_ini, 'show_unsaved', 'w', '-1'))
+        if x<0:
+            return
         h = int(ini_read(fn_ini, 'show_unsaved', 'h', '-1'))
-        if x<0: return
-
+        w = int(ini_read(fn_ini, 'show_unsaved', 'w', '-1'))
+        y = int(ini_read(fn_ini, 'show_unsaved', 'y', '-1'))
         dlg_proc(self.h_dlg, DLG_PROP_SET, prop={'x':x, 'y':y, 'w':w, 'h':h, })
 
 

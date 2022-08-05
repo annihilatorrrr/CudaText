@@ -6,12 +6,12 @@ def _reset_plugins(dir):
     l = [os.path.basename(fn) for fn in l if os.path.isdir(fn)]
     print()
     for s in l:
-        name = 'xx' + s
+        name = f'xx{s}'
         if name in globals():
-            print('Reset plugin: ' + s)
-            exec('global %s; del %s' % (name, name))
+            print(f'Reset plugin: {s}')
+            exec(f'global {name}; del {name}')
             if s in sys.modules:
                 del sys.modules[s]
-            submods = [sm for sm in sys.modules.keys() if sm.startswith(s+'.')]
+            submods = [sm for sm in sys.modules.keys() if sm.startswith(f'{s}.')]
             for sm in submods:
                 del sys.modules[sm]

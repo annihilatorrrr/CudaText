@@ -27,7 +27,7 @@ dir_for_all = os.path.join(_homedir, 'CudaText_addons')
 fn_config = os.path.join(app_path(APP_DIR_SETTINGS), 'cuda_addonman.json')
 
 def collapse_filename(fn):
-    if (fn+'/').startswith(_homedir+'/'):
+    if f'{fn}/'.startswith(f'{_homedir}/'):
         fn = fn.replace(_homedir, '~', 1)
     return fn
 
@@ -117,11 +117,12 @@ class Command:
         res = do_config_dialog()
         if res is None: return
 
-        data = {}
-        data['channels_user'] = opt.ch_user
-        data['suggest_readme'] = opt.suggest_readme
-        data['install_confirm'] = opt.install_confirm
-        data['proxy'] = opt.proxy
+        data = {
+            'channels_user': opt.ch_user,
+            'suggest_readme': opt.suggest_readme,
+            'install_confirm': opt.install_confirm,
+            'proxy': opt.proxy,
+        }
 
         with open(fn_config, 'w') as f:
             f.write(json.dumps(data, indent=4))
@@ -194,7 +195,12 @@ class Command:
 
         self.hide_progress()
 
-        text = _('Download complete') if not self.stopped_force else _('Download stopped ')+self.stopped_msg
+        text = (
+            _('Download stopped ') + self.stopped_msg
+            if self.stopped_force
+            else _('Download complete')
+        )
+
         if err>0:
             text += _('\nErrors occurred, see Python console')
         msg_box(text, MB_OK+MB_ICONINFO)
@@ -212,9 +218,10 @@ class Command:
         if not is_item_installed(item):
             return ''
 
-        if item['kind']=='plugin':
-            if os.path.isdir(DIR_PY+'/'+item['module']+'/.git'):
-                return ' ◄git►'
+        if item['kind'] == 'plugin' and os.path.isdir(
+            f'{DIR_PY}/' + item['module'] + '/.git'
+        ):
+            return ' ◄git►'
 
         v_remote = item.get('v', '')
         v_local = work_local.get_addon_version(item.get('url', ''))
@@ -239,16 +246,22 @@ class Command:
             key=lambda item: (item['kind'], item['name'])
             )
 
-        kinds = sorted(list(set([i['kind'] for i in items])))
+        kinds = sorted(list({i['kind'] for i in items}))
 
         installed = get_installed_addons()
         installed_modules = [i['module'] for i in installed if i['kind']=='plugin']
         installed_lexers = [i['name'].replace(' ', '_') for i in installed if i['kind']=='lexer']
 
-        names = ['<'+CATEGORY+'>'] + \
-            [ i['kind'] + ': ' + i['name'] + \
-            self.get_item_label(i, installed_modules, installed_lexers) + \
-            '\t' + i['desc'] for i in items ]
+        names = [f'<{CATEGORY}>'] + [
+            i['kind']
+            + ': '
+            + i['name']
+            + self.get_item_label(i, installed_modules, installed_lexers)
+            + '\t'
+            + i['desc']
+            for i in items
+        ]
+
 
         res = dlg_menu(
             DMENU_LIST_ALT+DMENU_NO_FULLFILTER,
@@ -269,14 +282,15 @@ class Command:
             need_kind = kinds[res]
             items = [ i for i in items if i['kind']==need_kind ]
             names = [ i['kind'] + ': ' + i['name'] + \
-                self.get_item_label(i, installed_modules, installed_lexers) + \
-                '\t' + i['desc'] for i in items ]
+                    self.get_item_label(i, installed_modules, installed_lexers) + \
+                    '\t' + i['desc'] for i in items ]
 
             res = dlg_menu(
-                DMENU_LIST_ALT+DMENU_NO_FULLFILTER,
+                DMENU_LIST_ALT + DMENU_NO_FULLFILTER,
                 names,
-                caption=caption+' / '+CATEGORY+' "'+need_kind+'"'
-                )
+                caption=f'{caption} / {CATEGORY}' + ' "' + need_kind + '"',
+            )
+
             if res is None: return
         else:
             #for choice not from 'category', skip 1 first item 'Category'
@@ -288,17 +302,15 @@ class Command:
         req = info.get('req', '')
         req_names = req.split(',')
 
-        if info['kind']=='linter':
-            if not 'cuda_lint' in installed_modules:
-                req_names.append('plugin.CudaLint')
+        if info['kind'] == 'linter' and 'cuda_lint' not in installed_modules:
+            req_names.append('plugin.CudaLint')
 
-        if info['kind']=='formatter':
-            if not 'cuda_fmt' in installed_modules:
-                req_names.append('plugin.CudaFormatter')
+        if info['kind'] == 'formatter' and 'cuda_fmt' not in installed_modules:
+            req_names.append('plugin.CudaFormatter')
 
         req_items = []
         for s in req_names:
-            req_items += [i for i in items if s+'.zip'==os.path.basename(i['url']) ]
+            req_items += [i for i in items if f'{s}.zip' == os.path.basename(i['url'])]
 
         if req_items:
             nice_names = '* '+'\n* '.join([i['kind']+' '+i['name'] for i in req_items])
@@ -347,11 +359,9 @@ class Command:
 
             if m and suggest_readme:
                 names = []
-                fn = get_readme_of_module(m)
-                if fn:
+                if fn := get_readme_of_module(m):
                     names.append((get_name_of_module(m)+_(': view readme'), fn))
-                fn = get_history_of_module(m)
-                if fn:
+                if fn := get_history_of_module(m):
                     names.append((get_name_of_module(m)+_(': view history'), fn))
 
                 if names:
@@ -393,8 +403,7 @@ class Command:
         if msg_box(_('Remove {}: {}').format(item['kind'], item['name']), MB_OKCANCEL+MB_ICONQUESTION)!=ID_OK:
             return
 
-        module = item.get('module', '')
-        if module:
+        if module := item.get('module', ''):
             do_remove_version_of_plugin(module)
 
         ok = True
@@ -402,9 +411,8 @@ class Command:
             if fn.endswith('/'):
                 fn = fn[:-1]
                 ok = do_remove_dir(fn)
-            else:
-                if os.path.isfile(fn):
-                    os.remove(fn)
+            elif os.path.isfile(fn):
+                os.remove(fn)
         if ok:
             msg_box(_('Removed, restart program to see changes'), MB_OK+MB_ICONINFO)
 
@@ -419,19 +427,17 @@ class Command:
     def do_homepage(self):
         m = get_installed_choice(_('Visit homepage'))
         if m is None: return
-        s = get_homepage_of_module(m)
-        if s:
+        if s := get_homepage_of_module(m):
             webbrowser.open_new_tab(s)
             msg_status(_('Opened browser: ')+s)
         else:
             msg_box(_('Plugin "%s" doesn\'t have "homepage" field in install.inf') % \
-              get_name_of_module(m), MB_OK+MB_ICONWARNING)
+                  get_name_of_module(m), MB_OK+MB_ICONWARNING)
 
     def do_readme(self):
         m = get_installed_choice(_('Open readme'))
         if m is None: return
-        s = get_readme_of_module(m)
-        if s:
+        if s := get_readme_of_module(m):
             file_open(s)
         else:
             msg_status(_('Plugin "%s" doesn\'t have readme') % get_name_of_module(m))
@@ -439,8 +445,7 @@ class Command:
     def do_history(self):
         m = get_installed_choice(_('Open history'))
         if m is None: return
-        s = get_history_of_module(m)
-        if s:
+        if s := get_history_of_module(m):
             file_open(s)
         else:
             msg_status(_('Plugin "%s" doesn\'t have history') % get_name_of_module(m))
@@ -469,7 +474,7 @@ class Command:
 
         modules = get_installed_modules()
         modules_git = [m for m in modules if os.path.isdir(os.path.join(dir_py, m, '.git'))]
-        modules = [m for m in modules if not m in modules_git]
+        modules = [m for m in modules if m not in modules_git]
 
         installed = get_installed_addons()
         lexers = [fix_name(i['name'], False) for i in installed if i['kind']=='lexer']
@@ -477,9 +482,9 @@ class Command:
         themes = [fix_name(i['name'], True) for i in installed if i['kind']=='theme']
 
         addons = [a for a in addons if a['kind'] in ('plugin', 'treehelper', 'linter', 'formatter') and a.get('module', '') in modules] \
-               + [a for a in addons if a['kind']=='lexer' and a['name'] in lexers] \
-               + [a for a in addons if a['kind']=='translation' and a['name'] in langs] \
-               + [a for a in addons if a['kind']=='theme' and a['name'].lower() in themes]
+                   + [a for a in addons if a['kind']=='lexer' and a['name'] in lexers] \
+                   + [a for a in addons if a['kind']=='translation' and a['name'] in langs] \
+                   + [a for a in addons if a['kind']=='theme' and a['name'].lower() in themes]
 
         modules_web = [a.get('module', '') for a in addons]
         modules_web = [a for a in modules_web if a]
@@ -495,7 +500,7 @@ class Command:
             elif a['kind']=='theme':
                 a['dir'] = 'data/themes'
             else:
-                a['dir'] = 'py/'+m
+                a['dir'] = f'py/{m}'
 
             v_local = '?'
             if m in STD_MODULES:
@@ -511,7 +516,7 @@ class Command:
         for m in modules_git:
             d = {}
             d['module'] = m
-            d['dir'] = 'py/'+m
+            d['dir'] = f'py/{m}'
             d['kind'] = 'plugin'
             d['name'] = get_name_of_module(m)
             d['v_local'] = 'Git'
@@ -535,13 +540,45 @@ class Command:
         c1 = chr(1)
 
         while True:
-            text = '\n'.join([
-              c1.join(['type=button', 'pos=514,500,614,0', 'cap='+_('Update'), 'ex0=1']),
-              c1.join(['type=button', 'pos=620,500,720,0', 'cap='+_('Cancel')]),
-              c1.join(['type=checklistview', 'pos=6,6,720,490', 'items='+text_items, 'val='+text_val, 'ex0=1']),
-              c1.join(['type=button', 'pos=6,500,100,0', 'cap='+_('Deselect all')]),
-              c1.join(['type=button', 'pos=106,500,200,0', 'cap='+_('Select new')]),
-              ])
+            text = '\n'.join(
+                [
+                    c1.join(
+                        [
+                            'type=button',
+                            'pos=514,500,614,0',
+                            'cap=' + _('Update'),
+                            'ex0=1',
+                        ]
+                    ),
+                    c1.join(
+                        ['type=button', 'pos=620,500,720,0', 'cap=' + _('Cancel')]
+                    ),
+                    c1.join(
+                        [
+                            'type=checklistview',
+                            'pos=6,6,720,490',
+                            f'items={text_items}',
+                            f'val={text_val}',
+                            'ex0=1',
+                        ]
+                    ),
+                    c1.join(
+                        [
+                            'type=button',
+                            'pos=6,500,100,0',
+                            'cap=' + _('Deselect all'),
+                        ]
+                    ),
+                    c1.join(
+                        [
+                            'type=button',
+                            'pos=106,500,200,0',
+                            'cap=' + _('Select new'),
+                        ]
+                    ),
+                ]
+            )
+
 
             res = dlg_custom(_('Update add-ons'), 726, 532, text)
             if res is None: return
@@ -568,7 +605,7 @@ class Command:
         fail_count = 0
 
         for a in addons:
-            print('  [%s] %s' % (a['kind'], a['name']))
+            print(f"  [{a['kind']}] {a['name']}")
             msg_status(_('Updating: [{}] {}').format(a['kind'], a['name']), True)
 
             m = a.get('module', '')

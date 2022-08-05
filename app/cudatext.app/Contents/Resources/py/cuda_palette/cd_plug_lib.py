@@ -10,13 +10,13 @@ Content
 ToDo: (see end of file)
 '''
 
+
 import  sys, os, gettext, logging, inspect, time, collections, json, re, subprocess
 from    time        import perf_counter
 import  cudatext        as app
 import  cudax_lib       as apx
 
-pass;                           # Logging
-pass;                           from pprint import pformat
+from pprint import pformat
 
 odict       = collections.OrderedDict
 GAP         = 5
@@ -107,22 +107,22 @@ class Tr :
             if '(:)' in self.ops :
                 # Начать замер нового интервала
                 self.tm = perf_counter()
-        def log(self, msg='') :
-            if '(:)' in self.ops :
-                msg = '{}(:)=[{}]{}'.format( self.nm, Tr.format_tm( perf_counter() - self.tm ), msg ) 
+        def log(self, msg=''):
+            if '(:)' in self.ops:
+                msg = f'{self.nm}(:)=[{Tr.format_tm(perf_counter() - self.tm)}]{msg}'
                 logging.debug( self.tr.format_msg(msg, ops='') )
-        def __del__(self) :
+        def __del__(self):
             #pass;                  logging.debug('in del')
-            if '(:)' in self.ops :
-                msg = '{}(:)=[{}]'.format( self.nm, Tr.format_tm( perf_counter() - self.tm ) ) 
+            if '(:)' in self.ops:
+                msg = f'{self.nm}(:)=[{Tr.format_tm(perf_counter() - self.tm)}]'
                 logging.debug( self.tr.format_msg(msg, ops='') )
             if '>>' in self.ops :
                 self.tr.gap = self.tr.gap[:-1]
                 
-    def log(self, msg='') :
-        if '(:)' in msg :
+    def log(self, msg=''):
+        if '(:)' in msg:
             Tr.TrLiver.cnt += 1
-            msg     = msg.replace( '(:)', '{}(:)'.format(Tr.TrLiver.cnt) )  
+            msg = msg.replace('(:)', f'{Tr.TrLiver.cnt}(:)')
         logging.debug( self.format_msg(msg) )
         if '>>' in msg :
             self.gap = self.gap + c9
@@ -135,13 +135,13 @@ class Tr :
         # Tr.log
             
 #   def format_msg(self, msg, dpth=2, ops='+fun:ln +wait==') :
-    def format_msg(self, msg, dpth=3, ops='+fun:ln +wait==') :
-        if '(==' in msg :
+    def format_msg(self, msg, dpth=3, ops='+fun:ln +wait=='):
+        if '(==' in msg:
             # Начать замер нового интервала
             self.stms   = self.stms + [perf_counter()]
-            msg = msg.replace( '(==', '(==[' + Tr.format_tm(0) + ']' )
+            msg = msg.replace('(==', f'(==[{Tr.format_tm(0)}]')
 
-        if '+fun:ln' in ops :
+        if '+fun:ln' in ops:
             frCaller= inspect.stack()[dpth] # 0-format_msg, 1-Tr.log|Tr.TrLiver, 2-log, 3-need func
             try:
                 cls = frCaller[0].f_locals['self'].__class__.__name__ + '.'
@@ -149,16 +149,16 @@ class Tr :
                 cls = ''
             fun     = (cls + frCaller[3]).replace('.__init__','()')
             ln      = frCaller[2]
-            msg     = '[{}]{}{}:{} '.format( Tr.format_tm( perf_counter() - self.tm ), self.gap, fun, ln ) + msg
-        else : 
-            msg     = '[{}]{}'.format( Tr.format_tm( perf_counter() - self.tm ), self.gap ) + msg
+            msg = f'[{Tr.format_tm(perf_counter() - self.tm)}]{self.gap}{fun}:{ln} ' + msg
+        else: 
+            msg = f'[{Tr.format_tm(perf_counter() - self.tm)}]{self.gap}' + msg
 
-        if '+wait==' in ops :
-            if ( '==)' in msg or '==>' in msg ) and len(self.stms)>0 :
+        if '+wait==' in ops:
+            if ( '==)' in msg or '==>' in msg ) and len(self.stms)>0:
                 # Закончить/продолжить замер последнего интервала и вывести его длительность
                 sign    = '==)' if '==)' in msg else '==>'
                 # sign    = icase( '==)' in msg, '==)', '==>' )
-                stm = '[{}]'.format( Tr.format_tm( perf_counter() - self.stms[-1] ) )
+                stm = f'[{Tr.format_tm(perf_counter() - self.stms[-1])}]'
                 msg = msg.replace( sign, sign+stm )
                 if '==)' in msg :
                     del self.stms[-1] 
@@ -166,14 +166,14 @@ class Tr :
             if '=}}' in msg :
                 # Отменить все замеры
                 self.stms   = []
-                
+
         return msg.replace('¬',c9).replace('¶',c10)
         # Tr.format
 
     @staticmethod
-    def format_tm(secs) :
+    def format_tm(secs):
         """ Конвертация количества секунд в 12h34'56.78" """
-        if 0==len(Tr.se_fmt) :
+        if len(Tr.se_fmt) == 0:
             Tr.se_fmt       = '{:'+str(3+Tr.sec_digs)+'.'+str(Tr.sec_digs)+'f}"'
             Tr.mise_fmt     = "{:2d}'"+Tr.se_fmt
             Tr.homise_fmt   = "{:2d}h"+Tr.mise_fmt
@@ -181,11 +181,13 @@ class Tr :
         secs = secs % 3600
         m = secs // 60
         s = secs % 60
-        return Tr.se_fmt.format(s) \
-                if 0==h+m else \
-               Tr.mise_fmt.format(m,s) \
-                if 0==h else \
-               Tr.homise_fmt.format(h,m,s)
+        return (
+            Tr.se_fmt.format(s)
+            if h + m == 0
+            else Tr.mise_fmt.format(m, s)
+            if h == 0
+            else Tr.homise_fmt.format(h, m, s)
+        )
         # return icase( 0==h+m,   Tr.se_fmt.format(s)
         #             , 0==h,     Tr.mise_fmt.format(m,s)
         #             ,           Tr.homise_fmt.format(h,m,s) )
@@ -222,9 +224,8 @@ def get_translation(plug_file):
                 plug_dir                        +os.sep+'lang',
               ]
     _       =  lambda x: x
-    pass;                      #return _
     for lng_dir in lng_dirs:
-        lng_mo  = lng_dir+'/{}/LC_MESSAGES/{}.mo'.format(lng, plug_mod)
+        lng_mo = lng_dir + f'/{lng}/LC_MESSAGES/{plug_mod}.mo'
         if os.path.isfile(lng_mo):
             t   = gettext.translation(plug_mod, lng_dir, languages=[lng])
             _   = t.gettext
@@ -269,9 +270,8 @@ def get_desktop_environment():
         if os.environ.get('KDE_FULL_SESSION') == 'true':
             return "kde"
         elif os.environ.get('GNOME_DESKTOP_SESSION_ID'):
-            if not "deprecated" in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
+            if "deprecated" not in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
                 return "gnome2"
-        #From http://ubuntuforums.org/showthread.php?t=652320
         elif is_running("xfce-mcs-manage"):
             return "xfce4"
         elif is_running("ksmserver"):
@@ -284,10 +284,7 @@ def is_running(process):
         s = subprocess.Popen(["ps", "axw"],stdout=subprocess.PIPE)
     except: #Windows
         s = subprocess.Popen(["tasklist", "/v"],stdout=subprocess.PIPE)
-    for x in s.stdout:
-        if re.search(process, str(x)):
-            return True
-    return False
+    return any(re.search(process, str(x)) for x in s.stdout)
 
 ENV2FITS= {'win':
             {'check'      :-2
@@ -331,17 +328,14 @@ def fit_top_by_env(what_tp, base_tp='label'):
     if what_tp==base_tp:
         return 0
     if (what_tp, base_tp) in fit_top_by_env__cash:
-        pass;                  #log('cashed what_tp, base_tp={}',(what_tp, base_tp))
         return fit_top_by_env__cash[(what_tp, base_tp)]
     env     = get_desktop_environment()
-    pass;                      #env = 'mac'
     fit4lb  = ENV2FITS.get(env, ENV2FITS.get('win'))
     fit     = 0
     if base_tp=='label':
-        fit = apx.get_opt('dlg_wrapper_fit_va_for_'+what_tp, fit4lb.get(what_tp, 0))
+        fit = apx.get_opt(f'dlg_wrapper_fit_va_for_{what_tp}', fit4lb.get(what_tp, 0))
     else:
         fit = fit_top_by_env(what_tp) - fit_top_by_env(base_tp)
-    pass;                      #log('what_tp, base_tp, fit={}',(what_tp, base_tp, fit))
     return fit_top_by_env__cash.setdefault((what_tp, base_tp), fit)
    #def fit_top_by_env
 
@@ -407,16 +401,13 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
                     if not re.match(r'\d+$', vals['v']): continue
                     return vals['v']
     """
-    pass;                      #log('in_vals={}',pformat(in_vals, width=120))
     cid2i       = {cnt['cid']:i for i,cnt in enumerate(cnts) if 'cid' in cnt}
-    if True:
-        # Checks
-        no_tids = {cnt['tid']   for   cnt in    cnts    if 'tid' in cnt and  cnt['tid'] not in cid2i}
-        if no_tids:
-            raise Exception(f('No cid(s) for tid(s): {}', no_tids))
-        no_vids = {cid          for   cid in    in_vals if                          cid not in cid2i}
-        if no_vids:
-            raise Exception(f('No cid(s) for vals: {}', no_vids))
+    if no_tids := {
+        cnt['tid'] for cnt in cnts if 'tid' in cnt and cnt['tid'] not in cid2i
+    }:
+        raise Exception(f('No cid(s) for tid(s): {}', no_tids))
+    if no_vids := {cid for cid in in_vals if cid not in cid2i}:
+        raise Exception(f('No cid(s) for vals: {}', no_vids))
     ctrls_l = []
     for cnt in cnts:
         tp      = cnt['tp']
@@ -432,17 +423,17 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
             lst+= ['pos={l},{t},{r},0'.format(l=l,t=t,r=r)]
             ctrls_l+= [chr(1).join(lst)]
             continue#for cnt
-            
-        lst     = ['type='+tp]
+
+        lst = [f'type={tp}']
         # Simple props
         for k in ['cap', 'hint']:
             if k in cnt:
-                lst += [k+'='+str(cnt[k])]
+                lst += [f'{k}={str(cnt[k])}']
         # Alexey: support 'ex0'..'ex9'
         if 'props' in cnt:
             k = cnt['props'].split(',')
-            for (k_i, k_s) in enumerate(k):
-                lst += ['ex'+str(k_i)+'='+k_s]
+            for k_i, k_s in enumerate(k):
+                lst += [f'ex{str(k_i)}={k_s}']
         # Props with preparation
         # Position:
         #   t[op] or tid, l[eft] required
@@ -457,8 +448,8 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
             bs_tp   = bs_cnt['tp']
             t       = bs_cnt['t'] + fit_top_by_env(tp, REDUCTS.get(bs_tp, bs_tp))
 #           t       = bs_cnt['t'] + top_plus_for_os(tp, REDUCTS.get(bs_tp, bs_tp))
-        r       = cnt.get('r', l+cnt.get('w', 0)) 
-        b       = cnt.get('b', t+cnt.get('h', 0)) 
+        r       = cnt.get('r', l+cnt.get('w', 0))
+        b       = cnt.get('b', t+cnt.get('h', 0))
         lst    += ['pos={l},{t},{r},{b}'.format(l=l,t=t,r=r,b=b)]
         if 'en' in cnt:
             val     = cnt['en']
@@ -479,37 +470,17 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
             else:
                 # For combo, combo_ro, listbox, checkgroup, radiogroup, checklistbox: "\t"-separated lines
                 items   = '\t'.join(items)
-            lst+= ['items='+items]
-        
+            lst += [f'items={items}']
+
         # Prepare val
         if cnt.get('cid') in in_vals:
             in_val = in_vals[cnt['cid']]
-            if False:pass
-            elif tp in ['check', 'radio', 'checkbutton'] and isinstance(in_val, bool):
-                # For check, radio, checkbutton: value "0"/"1" 
-                in_val  = '1' if in_val else '0'
-            elif tp=='memo':
-                # For memo: "\t"-separated lines (in lines "\t" must be replaced to chr(2)) 
-                if isinstance(in_val, list):
-                    in_val = '\t'.join([v.replace('\t', chr(2)) for v in in_val])
-                else:
-                    in_val = in_val.replace('\t', chr(2)).replace('\r\n','\n').replace('\r','\n').replace('\n','\t')
-            elif tp=='checkgroup' and isinstance(in_val, list):
-                # For checkgroup: ","-separated checks (values "0"/"1") 
-                in_val = ','.join(in_val)
-            elif tp in ['checklistbox', 'checklistview'] and isinstance(in_val, tuple):
-                # For checklistbox, checklistview: index+";"+checks 
-                in_val = ';'.join( (str(in_val[0]), ','.join( in_val[1]) ) )
-            lst+= ['val='+str(in_val)]
+            lst += [f'val={str(in_val)}']
 
         if 'act' in cnt:    # must be last in lst
             val     = cnt['act']
             lst    += ['act='+('1' if val in [True, '1'] else '0')]
-        pass;                  #log('lst={}',lst)
         ctrls_l+= [chr(1).join(lst)]
-       #for cnt
-    pass;                      #log('ok ctrls_l={}',pformat(ctrls_l, width=120))
-
     ans     = app.dlg_custom(title, w, h, '\n'.join(ctrls_l), cid2i.get(focus_cid, -1))
     if ans is None: return None, None, None, None   # btn_cid, {cid:v}, focus_cid, [cid]
 
@@ -526,37 +497,13 @@ def dlg_wrapper(title, w, h, cnts, in_vals={}, focus_cid=None):
     act_cid     = cnts[btn_i]['cid']
     # Parse output values
     an_vals = {cid:vals_ls[cid2i[cid]] for cid in in_vals}
-    for cid in an_vals:
+    for cid, an_val in an_vals.items():
         cnt     = cnts[cid2i[cid]]
         tp      = cnt['tp']
         tp      = REDUCTS.get(tp, tp)
         in_val  = in_vals[cid]
-        an_val  = an_vals[cid]
-        if False:pass
-        elif tp=='memo':
-            # For memo: "\t"-separated lines (in lines "\t" must be replaced to chr(2)) 
-            if isinstance(in_val, list):
-                an_val = [v.replace(chr(2), '\t') for v in an_val.split('\t')]
-               #in_val = '\t'.join([v.replace('\t', chr(2)) for v in in_val])
-            else:
-                an_val = an_val.replace('\t','\n').replace(chr(2), '\t')
-               #in_val = in_val.replace('\t', chr(2)).replace('\r\n','\n').replace('\r','\n').replace('\n','\t')
-        elif tp=='checkgroup' and isinstance(in_val, list):
-            # For checkgroup: ","-separated checks (values "0"/"1") 
-            an_val = an_val.split(',')
-           #in_val = ','.join(in_val)
-        elif tp in ['checklistbox', 'checklistview'] and isinstance(in_val, tuple):
-            an_val = an_val.split(';')
-            an_val = (an_val[0], an_val[1].strip(',').split(','))
-           #in_val = ';'.join(in_val[0], ','.join(in_val[1]))
-        elif isinstance(in_val, bool): 
-            an_val = an_val=='1'
-        elif tp=='listview':
-            an_val = -1 if an_val=='' else int(an_val)
-        else: 
-            an_val = type(in_val)(an_val)
+        an_val = type(in_val)(an_val)
         an_vals[cid]    = an_val
-       #for cid
     chds    = [cid for cid in in_vals if in_vals[cid]!=an_vals[cid]]
     if focus_cid:
         # If out focus points to button then will point to a unique changed control

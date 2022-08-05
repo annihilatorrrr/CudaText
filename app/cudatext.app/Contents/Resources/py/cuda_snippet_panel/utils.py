@@ -20,20 +20,17 @@ def bom_type(file):
         open(file, encoding=bom, errors='ignore')
     """
 
-    f = open(file, 'rb')
-    b = f.read(4)
-    f.close()
-
-    if (b[0:3] == b'\xef\xbb\xbf'):
+    with open(file, 'rb') as f:
+        b = f.read(4)
+    if b[:3] == b'\xef\xbb\xbf':
         return "utf8"
 
     # Python automatically detects endianness if utf-16 bom is present
     # write endianness generally determined by endianness of CPU
-    if ((b[0:2] == b'\xfe\xff') or (b[0:2] == b'\xff\xfe')):
+    if b[:2] in [b'\xfe\xff', b'\xff\xfe']:
         return "utf16"
 
-    if ((b[0:5] == b'\xfe\xff\x00\x00') 
-              or (b[0:5] == b'\x00\x00\xff\xfe')):
+    if b[:5] in [b'\xfe\xff\x00\x00', b'\x00\x00\xff\xfe']:
         return "utf32"
 
     # If BOM is not provided, then assume its the codepage

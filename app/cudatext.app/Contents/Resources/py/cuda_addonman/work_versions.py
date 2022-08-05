@@ -33,11 +33,11 @@ def version_save(url, filename, dir_target):
     save to versions.ini: hash of file, dir_target
     """
     ini_write(
-      version_filename(),
-      version_section(url),
-      url,
-      get_file_hash(filename)+','+dir_target
-      )
+        version_filename(),
+        version_section(url),
+        url,
+        f'{get_file_hash(filename)},{dir_target}',
+    )
 
 
 def version_saved_is_same(url, filename):

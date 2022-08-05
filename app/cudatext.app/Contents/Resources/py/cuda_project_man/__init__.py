@@ -21,16 +21,16 @@ IS_WIN = os.name == 'nt'
 PROJECT_EXTENSION = ".cuda-proj"
 PROJECT_DIALOG_FILTER = _("CudaText projects") + "|*" + PROJECT_EXTENSION
 PROJECT_UNSAVED_NAME = _("(Unsaved project)")
-PROJECT_TEMP_FILENAME = os.path.join(app_path(APP_DIR_SETTINGS), 'temporary'+PROJECT_EXTENSION)
+PROJECT_TEMP_FILENAME = os.path.join(
+    app_path(APP_DIR_SETTINGS), f'temporary{PROJECT_EXTENSION}'
+)
+
 NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD = range(4)
 global_project_info = {}
 
 def is_session_name(s):
     allowed = string.ascii_letters+string.digits+'., ()-+_$%='
-    for ch in s:
-        if not ch in allowed:
-            return False
-    return True
+    return all(ch in allowed for ch in s)
 
 def _file_open(fn, options=''):
     gr = ed.get_prop(PROP_INDEX_GROUP)
@@ -70,7 +70,7 @@ def project_variables():
     fn = data.get('mainfile', '')
     res['ProjMainFile'] = fn
     res['ProjMainFileNameOnly'] = os.path.basename(fn)
-    res['ProjMainFileNameNoExt'] = '.'.join(os.path.basename(fn).split('.')[0:-1])
+    res['ProjMainFileNameNoExt'] = '.'.join(os.path.basename(fn).split('.')[:-1])
 
     data = global_project_info.get('vars', [])
     for item in data:
@@ -83,26 +83,21 @@ NodeInfo = collections.namedtuple("NodeInfo", "caption image")
 _homedir = os.path.expanduser('~')
 
 def collapse_filename(fn):
-    if (fn+'/').startswith(_homedir+'/'):
+    if f'{fn}/'.startswith(f'{_homedir}/'):
         fn = fn.replace(_homedir, '~', 1)
     return fn
 
 def nice_filename(path):
-    return os.path.basename(path) + ' ('+ collapse_filename(os.path.dirname(path)) + ')'
+    return f'{os.path.basename(path)} ({collapse_filename(os.path.dirname(path))})'
 
 
 def is_simple_listed(name, masks):
     s = name.lower()
-    for mask in masks.split(' '):
-        if s.endswith(mask):
-            return True
-    return False
+    return any(s.endswith(mask) for mask in masks.split(' '))
 
 def is_mask_listed(s, masks):
     for mask in masks.split(';'):
-        r = fnmatch(s, mask)
-        #print("fnmatch('%s', '%s') = %d"%(s, mask, int(r)))
-        if r:
+        if r := fnmatch(s, mask):
             return True
     return False
 
@@ -119,31 +114,19 @@ def is_hidden_win32(s):
     return res
 
 def is_hidden(s):
-    if IS_WIN:
-        if s=='':
-            return False
-        if s.endswith(':\\'):
-            return False
-
-        return is_hidden_win32(s)
-        #try:
-        #    return bool(os.stat(s).st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN)
-        #except:
-        #    return True
-
-    else:
+    if not IS_WIN:
         return os.path.basename(s).startswith('.')
+    if s=='':
+        return False
+    return False if s.endswith(':\\') else is_hidden_win32(s)
 
 def is_win_root(s):
     return IS_WIN and s.endswith(':\\')
 
 def is_locked(s):
-    if IS_WIN:
-        if s.endswith(':\\'):
-            return False
-        return is_hidden_win32(s)
-    else:
+    if not IS_WIN:
         return not os.access(s, os.R_OK)
+    return False if s.endswith(':\\') else is_hidden_win32(s)
 
 
 def _toolbar_add_btn(h_bar, hint, icon=-1, command=''):
@@ -362,22 +345,18 @@ class Command:
             if node_type not in item_types:
                 continue
 
-            if item_parent == "proj":
-                menu_use = menu_proj
-            elif item_parent == "nodes":
-                menu_use = menu_nodes
+            if item_parent == "dir":
+                menu_use = menu_dir
             elif item_parent == "file":
                 menu_use = menu_file
-            elif item_parent == "dir":
-                menu_use = menu_dir
+            elif item_parent == "nodes":
+                menu_use = menu_nodes
+            elif item_parent == "proj":
+                menu_use = menu_proj
             else:
                 menu_use = menu_all
 
-            if item_action == "collect_recent_projects":
-                action = ""
-            else:
-                action = item_action
-
+            action = "" if item_action == "collect_recent_projects" else item_action
             menu_added = self.add_context_menu_node(menu_use, action, item_caption)
             if item_action == "collect_recent_projects":
                 for path in self.options["recent_projects"]:
@@ -489,26 +468,24 @@ class Command:
 
         if suffix=='':
             #Windows
-            os.system('explorer.exe /select,'+fn)
+            os.system(f'explorer.exe /select,{fn}')
         elif suffix=='__mac':
             #macOS
             fn = fn.replace(' ', '\\ ') #macOS cannot handle quoted filename
-            os.system('open --new --reveal '+fn)
+            os.system(f'open --new --reveal {fn}')
         elif suffix=='__haiku':
             #Haiku
             msg_status('"Focus in file manager" not implemented for this OS')
+        elif which('nautilus'):
+            os.system('nautilus "'+fn+'"')
+        elif which('thunar'):
+            os.system('thunar "'+os.path.dirname(fn)+'"')
+        elif which('caja'):
+            os.system('caja "'+os.path.dirname(fn)+'"')
+        elif which('dolphin'):
+            os.system('dolphin --select --new-window "'+fn+'"')
         else:
-            #Linux and others
-            if which('nautilus'):
-                os.system('nautilus "'+fn+'"')
-            elif which('thunar'):
-                os.system('thunar "'+os.path.dirname(fn)+'"')
-            elif which('caja'):
-                os.system('caja "'+os.path.dirname(fn)+'"')
-            elif which('dolphin'):
-                os.system('dolphin --select --new-window "'+fn+'"')
-            else:
-                msg_status('"Focus in file manager" does not support your file manager')
+            msg_status('"Focus in file manager" does not support your file manager')
 
     def action_rename(self):
         location = Path(self.get_location_by_index(self.selected))
@@ -598,10 +575,8 @@ class Command:
     def action_refresh(self, parent=None):
 
         sel_fn = ''
-        id = self.selected
-        if id:
-            prop = tree_proc(self.tree, TREE_ITEM_GET_PROPS, id)
-            if prop:
+        if id := self.selected:
+            if prop := tree_proc(self.tree, TREE_ITEM_GET_PROPS, id):
                 sel_fn = prop.get('data', '')
 
         # it was hard to add TREE_LOCK/UNLOCK directly into action_refresh_int
@@ -661,14 +636,9 @@ class Command:
             except:
                 tree_proc(self.tree, TREE_ITEM_SET_ICON, parent, image_index=self.ICON_BAD)
                 raise # good to see the error
-                return
-
         for path in nodes:
             # DirEntry or Path?
-            if isinstance(path, Path):
-                spath = str(path)
-            else:
-                spath = path.path
+            spath = str(path) if isinstance(path, Path) else path.path
             is_dir = path.is_dir()
             sname = path.name
             if is_win_root(spath):
@@ -688,12 +658,10 @@ class Command:
                 imageindex = self.ICON_ZIP
             elif is_simple_listed(path.name, MASKS_BINARY):
                 imageindex = self.ICON_BIN
+            elif lexname := lexer_proc(LEXER_DETECT, path.name):
+                imageindex = self.icon_get(lexname)
             else:
-                lexname = lexer_proc(LEXER_DETECT, path.name)
-                if lexname:
-                    imageindex = self.icon_get(lexname)
-                else:
-                    imageindex = self.ICON_ALL
+                imageindex = self.ICON_ALL
 
             index = tree_proc(
                 self.tree,
@@ -890,11 +858,14 @@ class Command:
 
         names = self.session_get_names()
         if names:
-            for (index, name) in enumerate(names):
-                id = menu_proc(self.h_menu_cfg, MENU_ADD,
-                    command="module=cuda_project_man;cmd=session_load;info=%s;"%name,
-                    caption=_('Project session:')+' '+name
-                    )
+            for name in names:
+                id = menu_proc(
+                    self.h_menu_cfg,
+                    MENU_ADD,
+                    command=f"module=cuda_project_man;cmd=session_load;info={name};",
+                    caption=_('Project session:') + ' ' + name,
+                )
+
                 if name==cur_name:
                     menu_proc(id, MENU_SET_ENABLED, command=False)
         else:
@@ -935,8 +906,7 @@ class Command:
     def get_info(self, index):
         if index is None:
             return
-        info = tree_proc(self.tree, TREE_ITEM_GET_PROPS, index)
-        if info:
+        if info := tree_proc(self.tree, TREE_ITEM_GET_PROPS, index):
             return NodeInfo(info['text'], info['icon'])
 
     def get_location_by_index(self, index):
@@ -1075,17 +1045,13 @@ class Command:
             msk = self.options.get("no_dirs", "")
         else:
             msk = self.options.get("no_files", "")
-        if msk:
-            return is_mask_listed(os.path.basename(fn), msk)
-        else:
-            return False
+        return is_mask_listed(os.path.basename(fn), msk) if msk else False
 
     def on_start(self, ed_self):
         and_activate = self.options.get("on_start_activate", False)
         self.init_panel(and_activate)
 
-        items = self.options.get("recent_projects", [])
-        if items:
+        if items := self.options.get("recent_projects", []):
             self.action_open_project(items[0])
 
     def contextmenu_add_dir(self):
@@ -1129,8 +1095,7 @@ class Command:
         Enum for all items.
         Until callback gets false.
         """
-        items = tree_proc(self.tree, TREE_ITEM_ENUM, 0)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM, 0):
             return self.enum_subitems(items[0][0], callback)
 
     def enum_subitems(self, item, callback):
@@ -1138,8 +1103,7 @@ class Command:
         Callback for all subitems of given item.
         Until callback gets false.
         """
-        items = tree_proc(self.tree, TREE_ITEM_ENUM_EX, item)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM_EX, item):
             for i in items:
                 subitem = i['id']
                 fn = i.get('data', '')
@@ -1151,20 +1115,17 @@ class Command:
 
 
     def enum_all_getfolds(self, unfolds):
-        items = tree_proc(self.tree, TREE_ITEM_ENUM, 0)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM, 0):
             return self.enum_subitems_getfolds(items[0][0], unfolds)
 
     def enum_subitems_getfolds(self, item, unfolds):
-        items = tree_proc(self.tree, TREE_ITEM_ENUM_EX, item)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM_EX, item):
             for i in items:
                 if i['sub_items']:
                     id = i['id']
                     prop = tree_proc(self.tree, TREE_ITEM_GET_PROPS, id)
                     if not prop['folded']:
-                        fn = i.get('data', '')
-                        if fn:
+                        if fn := i.get('data', ''):
                             unfolds.append(fn)
                     self.enum_subitems_getfolds(id, unfolds)
 
@@ -1172,13 +1133,11 @@ class Command:
     def enum_all_setfolds(self, unfolds):
         if not unfolds:
             return
-        items = tree_proc(self.tree, TREE_ITEM_ENUM, 0)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM, 0):
             return self.enum_subitems_setfolds(items[0][0], unfolds)
 
     def enum_subitems_setfolds(self, item, unfolds):
-        items = tree_proc(self.tree, TREE_ITEM_ENUM_EX, item)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM_EX, item):
             for i in items:
                 if i['sub_items']:
                     id = i['id']
@@ -1196,8 +1155,7 @@ class Command:
         Enum for all items.
         Find 'filename', and focus its node.
         """
-        items = tree_proc(self.tree, TREE_ITEM_ENUM, 0)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM, 0):
             return self.enum_subitems_fn(items[0][0], filename, and_open)
 
     def enum_subitems_fn(self, item_src, filename, and_open):
@@ -1238,8 +1196,7 @@ class Command:
         Enum for all items.
         Find 'filename', and select/show its node.
         """
-        items = tree_proc(self.tree, TREE_ITEM_ENUM, 0)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM, 0):
             return self.enum_subitems_sel(items[0][0], filename)
 
     def enum_subitems_sel(self, item_src, filename):
@@ -1251,9 +1208,7 @@ class Command:
         prop_list = tree_proc(self.tree, TREE_ITEM_ENUM_EX, item_src) or []
         for prop in prop_list:
             fn = prop['data']
-            is_dir = prop['sub_items']
-
-            if is_dir:
+            if is_dir := prop['sub_items']:
                 node = prop['id']
                 if not self.enum_subitems_sel(node, filename):
                     return False
@@ -1309,8 +1264,7 @@ class Command:
             msg_status(_('Project not loaded'))
             return
 
-        fn = ed.get_filename()
-        if fn:
+        if fn := ed.get_filename():
             if self.jump_to_filename(fn): #gets False if found
                 msg_status(_('Cannot jump to file: ') + collapse_filename(fn))
 
@@ -1327,8 +1281,7 @@ class Command:
 
         if info.image != self.ICON_DIR:
             return
-        items = tree_proc(self.tree, TREE_ITEM_ENUM, data)
-        if items:
+        if items := tree_proc(self.tree, TREE_ITEM_ENUM, data):
             for handle, _ in items:
                 tree_proc(self.tree, TREE_ITEM_DELETE, handle)
 
@@ -1361,9 +1314,9 @@ class Command:
 
     def get_open_options(self):
 
-        s = '/preview' if self.options.get('preview', True) else ''
-        s += ' /nozip /nontext-view-text'
-        return s
+        return (
+            '/preview' if self.options.get('preview', True) else ''
+        ) + ' /nozip /nontext-view-text'
 
     def tree_on_click(self, id_dlg, id_ctl, data='', info=''):
 
@@ -1396,7 +1349,7 @@ class Command:
         res = re.match('^\S+x(\d+)$', theme_name)
         if not res:
             return msg_box(_('Project Manager: bad icons folder name: "%s"') % theme_name, MB_OK+MB_ICONERROR)
-        n = int(res.group(1))
+        n = int(res[1])
         if not 8<=n<=64:
             return msg_box(_('Project Manager: bad icons size: "%s"') % theme_name, MB_OK+MB_ICONERROR)
 
@@ -1418,8 +1371,7 @@ class Command:
 
     def icon_get(self, key):
 
-        s = self.icon_indexes.get(key, None)
-        if s:
+        if s := self.icon_indexes.get(key, None):
             return s
 
         fn = self.icon_json_dict.get(key, None)
@@ -1472,8 +1424,7 @@ class Command:
         self.jump_to_filename(fn)
 
     def open_main(self):
-        fn = self.project.get('mainfile', '')
-        if fn:
+        if fn := self.project.get('mainfile', ''):
             _file_open(fn)
         else:
             msg_status(_('Project main file is not set'))
@@ -1498,7 +1449,7 @@ class Command:
                         dirs.append(found.path)
                     elif found.is_file() and not self.is_filename_ignored(found.path, False):
                         files.append(found.path)
-            except (OSError, FileNotFoundError):
+            except OSError:
                 pass # Permissions issue. Not much we can do
         return files
 
@@ -1585,11 +1536,7 @@ class Command:
         names = [_('(none)')]+names
 
         curname = self.project.get('def_session', '')
-        if curname in names:
-            focused = names.index(curname)
-        else:
-            focused = 0
-
+        focused = names.index(curname) if curname in names else 0
         res = dlg_menu(DMENU_LIST, names, focused=focused, caption=_('Set default project session'))
         if res is None:
             return
@@ -1669,7 +1616,7 @@ class Command:
                 continue
             break
 
-        sess = fn+'|/sessions/'+s
+        sess = f'{fn}|/sessions/{s}'
         app_proc(PROC_SAVE_SESSION, sess)
         app_proc(PROC_SET_SESSION, sess)
 
@@ -1686,7 +1633,7 @@ class Command:
         if not name:
             return
 
-        if not name in self.session_get_names():
+        if name not in self.session_get_names():
             msg_status(_('Project session "%s" not found')%name)
             return
 
@@ -1702,7 +1649,7 @@ class Command:
 
         app_proc(PROC_SET_SESSION, '')
 
-        fn += '|/sessions/'+name
+        fn += f'|/sessions/{name}'
         app_proc(PROC_LOAD_SESSION, fn)
 
     def is_project_filename(self, filename):
@@ -1714,9 +1661,8 @@ class Command:
             if os.path.isdir(fn):
                 if filename.startswith(fn+os.sep):
                     return True
-            else:
-                if filename==fn:
-                    return True
+            elif filename==fn:
+                return True
         return False
 
     def close_foreign_tabs(self, confirm=True):
@@ -1809,7 +1755,7 @@ class Command:
         cur_fn = str(self.project_file_path)
         cur_sess = self.session_cur_name()
         if cur_fn and cur_sess:
-            sess = cur_fn+'|/sessions/'+cur_sess
+            sess = f'{cur_fn}|/sessions/{cur_sess}'
             app_proc(PROC_SAVE_SESSION, sess)
             if and_forget:
                 app_proc(PROC_SET_SESSION, '')

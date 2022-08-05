@@ -149,28 +149,24 @@ class Command:
 
             if show_g or show_t:
                 n_group = edit.get_prop(PROP_INDEX_GROUP)+1
-                if n_group<=6:
-                    s_group = str(n_group)
-                else:
-                    s_group = 'f'+str(n_group-6)
+                s_group = str(n_group) if n_group<=6 else f'f{str(n_group-6)}'
                 n_tab = edit.get_prop(PROP_INDEX_TAB)+1
                 s_tab = str(n_tab)
-                if self.show_index_aligned:
-                    if len(s_tab)<format_len:
-                        s_tab = ' '*(format_len-len(s_tab))+s_tab
+                if self.show_index_aligned and len(s_tab) < format_len:
+                    s_tab = ' '*(format_len-len(s_tab))+s_tab
 
                 if show_g and show_t:
-                    prefix = '%s:%s. '%(s_group, s_tab)
+                    prefix = f'{s_group}:{s_tab}. '
                 elif show_g:
-                    prefix = '%s: '%s_group
+                    prefix = f'{s_group}: '
                 elif show_t:
-                    prefix = '%s. '%s_tab
+                    prefix = f'{s_tab}. '
 
             name = prefix + edit.get_prop(PROP_TAB_TITLE).lstrip('*')
             if self.show_column_folder:
-                name += '|' + os.path.dirname(edit.get_filename())
+                name += f'|{os.path.dirname(edit.get_filename())}'
             if self.show_column_lexer:
-                name += '|' + edit.get_prop(PROP_LEXER_FILE)
+                name += f'|{edit.get_prop(PROP_LEXER_FILE)}'
 
             mod = edit.get_prop(PROP_MODIFIED)
             cnt = listbox_proc(self.h_list, LISTBOX_ADD_PROP, index=-1,
@@ -194,23 +190,19 @@ class Command:
         return Editor(h)
 
     def menu_close_sel(self):
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.cmd(cudatext_cmd.cmd_FileClose)
 
     def menu_close_others(self):
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.cmd(cudatext_cmd.cmd_FileCloseOtherAll)
 
     def menu_copy_file_path(self):
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.cmd(cudatext_cmd.cmd_CopyFilenameFull)
 
     def menu_copy_file_name(self):
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.cmd(cudatext_cmd.cmd_CopyFilenameName)
 
 
@@ -218,26 +210,22 @@ class Command:
         if self.h_list is None: return
         if self.busy_update: return
 
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.focus()
 
     def list_on_menu(self, id_dlg, id_ctl, data='', info=''):
         if self.h_menu is None: return
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.focus()
         menu_proc(self.h_menu, MENU_SHOW, command='')
 
     def list_on_click_x(self, id_dlg, id_ctl, data='', info=''):
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.focus()
         self.menu_close_sel()
 
     def list_on_click(self, id_dlg, id_ctl, data='', info=''):
-        e = self.ed_of_sel()
-        if e:
+        if e := self.ed_of_sel():
             e.focus()
 
     def config(self):
@@ -257,5 +245,5 @@ class Command:
 
         #handle Enter and Space
         if (key in [13, 32]) and (state==''):
-            self.list_on_click(id_dlg, id_ctl)
+            self.list_on_click(id_dlg, key)
             return False

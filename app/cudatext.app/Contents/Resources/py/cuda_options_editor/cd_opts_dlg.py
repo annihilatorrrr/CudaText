@@ -19,20 +19,11 @@ from    .cd_plug_lib    import *
 
 d   = dict
 odict = collections.OrderedDict
-#class odict(collections.OrderedDict):  #py3.9 conflict
-#   def __init__(self, *args, **kwargs):
-#       if     args:super().__init__(*args)
-#       elif kwargs:super().__init__(kwargs.items())
-#   def __repr__(self):
-#       return '{%s}' % (', '.join("'%s':%r" % (k,v) for k,v in self.items()))
-
-pass;                           LOG     = (-1== 1) or apx.get_opt('_opts_dlg_log',False)    # Do or dont logging.
-pass;                           from pprint import pformat
-pass;                           pf=lambda d:pformat(d,width=150)
-pass;                           pf80=lambda d:pformat(d,width=80)
-pass;                           pf60=lambda d:pformat(d,width=60)
-pass;                           ##!! waits correction
-
+LOG     = (-1== 1) or apx.get_opt('_opts_dlg_log',False)    # Do or dont logging.
+from pprint import pformat
+pf=lambda d:pformat(d,width=150)
+pf80=lambda d:pformat(d,width=80)
+pf60=lambda d:pformat(d,width=60)
 _   = get_translation(__file__) # I18N
 
 MIN_API_VER     = '1.0.168'
@@ -49,8 +40,7 @@ HTM_RPT_FILE= str(Path(tempfile.gettempdir()) / 'CudaText_option_report.html')
 FONT_LST    = ['default'] \
             + [font 
                 for font in app.app_proc(app.PROC_ENUM_FONTS, '')
-                if not font.startswith('@')] 
-pass;                          #FONT_LST=FONT_LST[:3]
+                if not font.startswith('@')];                          #FONT_LST=FONT_LST[:3]
 
 def load_definitions(defn_path_or_json)->list:
     """ Return  

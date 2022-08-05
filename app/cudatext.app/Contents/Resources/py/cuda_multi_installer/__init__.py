@@ -27,7 +27,7 @@ def is_file_html(fn):
 
 def make_plugin_group(regex, name):
 
-    apx.set_opt('plugin_groups/'+regex, name)
+    apx.set_opt(f'plugin_groups/{regex}', name)
 
 
 class Command:
@@ -79,20 +79,30 @@ class Command:
     def get_module(self,kind,name):
 
         k = TYPE_TO_KIND.get(kind)
-        if not k:
-            return ''
-        for i in self.packets:
-            if i['kind']==k and i['name']==name:
-                return i.get('module','')
-        return ''
+        return (
+            next(
+                (
+                    i.get('module', '')
+                    for i in self.packets
+                    if i['kind'] == k and i['name'] == name
+                ),
+                '',
+            )
+            if k
+            else ''
+        )
 
     def get_url(self,kind,name):
 
         k = TYPE_TO_KIND.get(kind)
-        for i in self.packets:
-            if i['kind']==k and i['name']==name:
-                return (i['url'], i['v'])
-        return ('', '')
+        return next(
+            (
+                (i['url'], i['v'])
+                for i in self.packets
+                if i['kind'] == k and i['name'] == name
+            ),
+            ('', ''),
+        )
 
     def is_installed(self,kind,name):
 
@@ -134,8 +144,7 @@ class Command:
             self.error_count += 1
             return
 
-        ok = file_open(fn, options='/silent')
-        if ok:
+        if ok := file_open(fn, options='/silent'):
             self.ok_count += 1
             cuda_addonman.work_local.do_save_version(url, fn, version)
 
@@ -147,8 +156,7 @@ class Command:
             msg_status(_('Multi Installer: cannot download list'))
             return
 
-        langs = list(PLUGINS.keys())
-        langs.sort()
+        langs = sorted(PLUGINS.keys())
         h=app_proc(PROC_GET_GUI_HEIGHT,'check')
 
         to_install = {}
@@ -209,52 +217,103 @@ class Command:
                 return
 
             for curr_class in CLASSES:
-                    pls = PLUGINS[langs[lang_index]].setdefault(curr_class)
-                    if pls:
-                        if line in (COLUMN_LEN,COLUMN_LEN-1):
+                pls = PLUGINS[langs[lang_index]].setdefault(curr_class)
+                if pls:
+                    if line in (COLUMN_LEN,COLUMN_LEN-1):
+                        cl+=1
+                        line = 0
+                    UI.append(
+                        '\1'.join(
+                            [
+                                'type=label',
+                                'pos=%d,%d,%d,%d'
+                                % (
+                                    5 + COLUMN_W * cl,
+                                    line * h + 5,
+                                    COLUMN_W * (cl + 1),
+                                    line * 20 + 25,
+                                ),
+                                f'cap={CLASSES_MSGS[curr_class]}',
+                            ]
+                        )
+                    )
+
+                    UI_reg.append(())
+                    line+=1
+                    for pl in pls:
+                        if line==COLUMN_LEN:
                             cl+=1
                             line = 0
-                        UI.append('\1'.join([
-                                        'type=label',
-                                        'pos=%d,%d,%d,%d'%(5+COLUMN_W*cl, line*h+5, COLUMN_W*(cl+1), line*20+25),
-                                        'cap='+CLASSES_MSGS[curr_class]
-                                        ]))
-                        UI_reg.append(())
+                        flag_en = not self.is_installed(curr_class,pl)
+                        UI.append(
+                            '\1'.join(
+                                [
+                                    'type=check',
+                                    'pos=%d,%d,%d,%d'
+                                    % (
+                                        5 + COLUMN_W * cl,
+                                        line * h,
+                                        COLUMN_W * (cl + 1),
+                                        line * 20 + 25,
+                                    ),
+                                    'cap=' + pl.replace('_', ' '),
+                                    f'en={bool_to_str(flag_en)}',
+                                ]
+                            )
+                        )
+
+                        UI_reg.append((curr_class,pl))
                         line+=1
-                        for pl in pls:
-                            if line==COLUMN_LEN:
-                                cl+=1
-                                line = 0
-                            flag_en = not self.is_installed(curr_class,pl)
-                            UI.append('\1'.join([
-                                            'type=check',
-                                            'pos=%d,%d,%d,%d'%(5+COLUMN_W*cl, line*h, COLUMN_W*(cl+1), line*20+25),
-                                            'cap='+pl.replace('_',' '),
-                                            'en='+bool_to_str(flag_en)
-                                            ]))
-                            UI_reg.append((curr_class,pl))
-                            line+=1
 
             if cl!=0:
                 line=COLUMN_LEN
             cl = max(cl,1)
-            UI = ['\1'.join([
-                        'type=button',
-                        'pos=%d,%d,%d,%d'%(COLUMN_W*(cl+1)-86-86, line*h+5, COLUMN_W*(cl+1)-6-86, line*20+25),
-                        'cap='+_('Back'),
-                        'en='+bool_to_str(step>0),
-                        ])] +\
-                ['\1'.join([
-                        'type=button',
-                        'pos=%d,%d,%d,%d'%(COLUMN_W*(cl+1)-86, line*h+5, COLUMN_W*(cl+1)-6, line*20+25),
-                        'cap='+_('Next'),
-                        ])] +\
-                UI +\
-                ['\1'.join([
+            UI = (
+                (
+                    [
+                        '\1'.join(
+                            [
+                                'type=button',
+                                'pos=%d,%d,%d,%d'
+                                % (
+                                    COLUMN_W * (cl + 1) - 86 - 86,
+                                    line * h + 5,
+                                    COLUMN_W * (cl + 1) - 6 - 86,
+                                    line * 20 + 25,
+                                ),
+                                'cap=' + _('Back'),
+                                f'en={bool_to_str(step>0)}',
+                            ]
+                        )
+                    ]
+                    + [
+                        '\1'.join(
+                            [
+                                'type=button',
+                                'pos=%d,%d,%d,%d'
+                                % (
+                                    COLUMN_W * (cl + 1) - 86,
+                                    line * h + 5,
+                                    COLUMN_W * (cl + 1) - 6,
+                                    line * 20 + 25,
+                                ),
+                                'cap=' + _('Next'),
+                            ]
+                        )
+                    ]
+                )
+                + UI
+            ) + [
+                '\1'.join(
+                    [
                         'type=label',
-                        'pos=%d,%d,%d,0'%(200, line*h+8, 100),
-                        'cap='+_('Step {} of {}').format(step+2, step_count+1)
-                        ])]
+                        'pos=%d,%d,%d,0' % (200, line * h + 8, 100),
+                        'cap='
+                        + _('Step {} of {}').format(step + 2, step_count + 1),
+                    ]
+                )
+            ]
+
             line+=1
             cl+=1
             res2 = dlg_custom(
@@ -285,6 +344,7 @@ class Command:
 
                     #print('to_install', to_install)
                     return res_clicked
+
         # end show_one_step()
 
         if not res_list:
@@ -314,16 +374,15 @@ class Command:
         if fill:
             self.error_count = 0
             self.ok_count = 0
-            self.total_count = sum([len(to_install[i]) for i in CLASSES])
+            self.total_count = sum(len(to_install[i]) for i in CLASSES)
 
             self.init_progress()
             dlg_proc(self.h_pro, DLG_SHOW_NONMODAL)
 
             def do_req(kind):
                 req = REQS.get(kind)
-                if req:
-                    if not self.is_installed(T_OTHER,req):
-                        self.install(T_OTHER,req)
+                if req and not self.is_installed(T_OTHER, req):
+                    self.install(T_OTHER,req)
 
             for i in to_install[T_LEXER]:
                 self.install(T_LEXER,i)

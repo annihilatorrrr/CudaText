@@ -29,17 +29,14 @@ def get_branch(url):
         if not isinstance(data, list):
             msg_box(_('Got empty list of Git branches for that repo'), MB_OK+MB_ICONERROR)
             return
-            
+
         items = [i.get('name') for i in data]
         if len(items)==1:
-            branch = items[0]
-        else:
-            items2 = ['Git branch "%s"'%s for s in items]
-            res = dlg_menu(DMENU_LIST, items2, caption=_('Git branches in repo'))
-            if res is None: return
-            branch = items[res]
-
-        return branch
+            return items[0]
+        items2 = ['Git branch "%s"'%s for s in items]
+        res = dlg_menu(DMENU_LIST, items2, caption=_('Git branches in repo'))
+        if res is None: return
+        return items[res]
 
 
 def dialog_github_install(history):
@@ -47,18 +44,64 @@ def dialog_github_install(history):
     id_edit = 1
     id_ok = 2
     id_cancel = 3
-    res = dlg_custom(_('Install from Git'), 456, 90, '\n'.join([]
-      + [c1.join(['type=label', 'cap='+_('&Git repository URL:'), 'pos=6,6,400,0'])]
-      + [c1.join(['type=combo', 'items='+'\t'.join(history), 'pos=6,26,450,0', 'cap='+history[0]])]
-      + [c1.join(['type=button', 'cap='+_('OK'), 'pos=246,60,346,0', 'ex0=1'])]
-      + [c1.join(['type=button', 'cap='+_('Cancel'), 'pos=350,60,450,0'])]
-      ))
+    res = dlg_custom(
+        _('Install from Git'),
+        456,
+        90,
+        '\n'.join(
+            (
+                (
+                    (
+                        []
+                        + [
+                            c1.join(
+                                [
+                                    'type=label',
+                                    'cap=' + _('&Git repository URL:'),
+                                    'pos=6,6,400,0',
+                                ]
+                            )
+                        ]
+                        + [
+                            c1.join(
+                                [
+                                    'type=combo',
+                                    'items=' + '\t'.join(history),
+                                    'pos=6,26,450,0',
+                                    f'cap={history[0]}',
+                                ]
+                            )
+                        ]
+                    )
+                    + [
+                        c1.join(
+                            [
+                                'type=button',
+                                'cap=' + _('OK'),
+                                'pos=246,60,346,0',
+                                'ex0=1',
+                            ]
+                        )
+                    ]
+                )
+                + [
+                    c1.join(
+                        [
+                            'type=button',
+                            'cap=' + _('Cancel'),
+                            'pos=350,60,450,0',
+                        ]
+                    )
+                ]
+            )
+        ),
+    )
+
     if not res: return
     btn, text = res
     if btn!=id_ok: return
     text = text.splitlines()
-    url = text[id_edit]
-    return url
+    return text[id_edit]
 
 
 fn_history = os.path.join(app_path(APP_DIR_SETTINGS), 'cuda_addonman_github.ini')
@@ -134,7 +177,7 @@ def do_install_from_github():
                 ' If you clone, Addon Manager\'s Update dialog will update add-on using "git pull", which is recommended.'),
                 [_('Clone repo'), _('Download as zip'), _('Cancel')],
                 MB_ICONQUESTION)
-        if res==2 or res==None:
+        if res == 2 or res is None:
             return
         if res==0:
             do_clone = True
@@ -155,7 +198,7 @@ def do_install_from_github():
 
         return
 
-    get_url(url+'/zipball/'+branch, fn, True)
+    get_url(f'{url}/zipball/{branch}', fn, True)
     msg_status('')
     if not os.path.isfile(fn):
         msg_status(_('Cannot download zip file'))

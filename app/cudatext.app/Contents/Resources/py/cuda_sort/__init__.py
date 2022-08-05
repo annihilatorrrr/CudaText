@@ -13,11 +13,10 @@ fn_ini = os.path.join(app_path(APP_DIR_SETTINGS), 'plugins.ini')
 op_section = 'sort'
 
 def get_offsets():
-    if ed.get_sel_mode()==SEL_COLUMN:
-        r = ed.get_sel_rect()
-        return r[0], r[2]
-    else:
+    if ed.get_sel_mode() != SEL_COLUMN:
         return -1, -1
+    r = ed.get_sel_rect()
+    return r[0], r[2]
 
 
 def get_num_and_text(s):
@@ -48,10 +47,7 @@ def get_dups(lines, nocase):
         s = l[0]
         del l[0]
         for i in reversed(range(len(l))):
-            if nocase:
-                ok = s.lower()==l[i].lower()
-            else:
-                ok = s==l[i]
+            ok = s.lower()==l[i].lower() if nocase else s==l[i]
             if ok:
                 if s not in res:
                     res.append(s)
@@ -75,7 +71,7 @@ def get_input():
         pass
 
     op_sort_all = ini_read(fn_ini, op_section, 'allow_all', '0')=='1'
-    
+
     if ed.get_line_count()>max_cnt:
         msg_box(_('Document has too many lines. Plugin Sort will not work. Current value of option [sort] max_lines in "settings/plugins.ini" is %d.\n\nInstead of Sort plugin, use CudaText built-in commands: "(without undo) sort...".') %max_cnt,
         MB_OK+MB_ICONERROR)
@@ -85,16 +81,11 @@ def get_input():
     nlines = ed.get_line_count()
     line1, line2 = ed_get_sel_lines()
 
-    if line1<0:
-        if op_sort_all:
-            is_all = True
-        else:
-            msg_status(_('Needed multiline selection'))
-            return
-    elif line1>=line2:
+    if line1 < 0 and op_sort_all:
+        is_all = True
+    elif line1 < 0 or line1 >= line2:
         msg_status(_('Needed multiline selection'))
         return
-
     if is_all:
         lines = ed_get_text_all()
     else:
@@ -137,10 +128,9 @@ def do_line_op(op, keep_blanks=False):
     elif op=='delete_dups':
         for i in range(len(lines)-1, 0, -1):
             for j in range(i-1, -1, -1):
-                if lines[i]==lines[j]:
-                    if lines[i] or not keep_blanks:
-                        del lines[i]
-                        break
+                if lines[i] == lines[j] and (lines[i] or not keep_blanks):
+                    del lines[i]
+                    break
 
     elif op=='delete_dups_origins':
         dups = get_dups(lines, False)
@@ -257,20 +247,86 @@ def do_dialog():
     op_offset1, op_offset2 = get_offsets()
 
     c1 = chr(1)
-    text = '\n'.join([
-      c1.join(['type=check', 'pos=6,6,300,0', 'cap='+_('&Sort descending (reverse)'), 'val='+op_rev]),
-      c1.join(['type=check', 'pos=6,30,300,0', 'cap='+_('&Ignore case'), 'val='+op_nocase]),
-      c1.join(['type=check', 'pos=6,54,300,0', 'cap='+_('Delete d&uplicate lines'), 'val='+op_del_dup]),
-      c1.join(['type=check', 'pos=6,78,300,0', 'cap='+_('Delete &blank lines'), 'val='+op_del_sp]),
-      c1.join(['type=check', 'pos=6,102,300,0', 'cap='+_('Numeric (treat beginning as number)'), 'val='+op_numeric]),
-      c1.join(['type=label', 'pos=6,130,300,0', 'cap='+_('Sort only by substring, offsets 0-based:')]),
-      c1.join(['type=label', 'pos=30,152,130,0', 'cap='+_('&From:')]),
-      c1.join(['type=spinedit', 'pos=30,170,110,0', 'ex0=-1', 'ex1=5000', 'ex2=1', 'val='+str(op_offset1)]),
-      c1.join(['type=label', 'pos=120,152,230,0', 'cap='+_('&To:')]),
-      c1.join(['type=spinedit', 'pos=120,170,200,0', 'ex0=-1', 'ex1=5000', 'ex2=1', 'val='+str(op_offset2)]),
-      c1.join(['type=button', 'pos=60,210,160,0', 'cap='+_('OK'), 'ex0=1']),
-      c1.join(['type=button', 'pos=164,210,264,0', 'cap='+_('Cancel')]),
-      ])
+    text = '\n'.join(
+        [
+            c1.join(
+                [
+                    'type=check',
+                    'pos=6,6,300,0',
+                    'cap=' + _('&Sort descending (reverse)'),
+                    f'val={op_rev}',
+                ]
+            ),
+            c1.join(
+                [
+                    'type=check',
+                    'pos=6,30,300,0',
+                    'cap=' + _('&Ignore case'),
+                    f'val={op_nocase}',
+                ]
+            ),
+            c1.join(
+                [
+                    'type=check',
+                    'pos=6,54,300,0',
+                    'cap=' + _('Delete d&uplicate lines'),
+                    f'val={op_del_dup}',
+                ]
+            ),
+            c1.join(
+                [
+                    'type=check',
+                    'pos=6,78,300,0',
+                    'cap=' + _('Delete &blank lines'),
+                    f'val={op_del_sp}',
+                ]
+            ),
+            c1.join(
+                [
+                    'type=check',
+                    'pos=6,102,300,0',
+                    'cap=' + _('Numeric (treat beginning as number)'),
+                    f'val={op_numeric}',
+                ]
+            ),
+            c1.join(
+                [
+                    'type=label',
+                    'pos=6,130,300,0',
+                    'cap=' + _('Sort only by substring, offsets 0-based:'),
+                ]
+            ),
+            c1.join(['type=label', 'pos=30,152,130,0', 'cap=' + _('&From:')]),
+            c1.join(
+                [
+                    'type=spinedit',
+                    'pos=30,170,110,0',
+                    'ex0=-1',
+                    'ex1=5000',
+                    'ex2=1',
+                    f'val={str(op_offset1)}',
+                ]
+            ),
+            c1.join(['type=label', 'pos=120,152,230,0', 'cap=' + _('&To:')]),
+            c1.join(
+                [
+                    'type=spinedit',
+                    'pos=120,170,200,0',
+                    'ex0=-1',
+                    'ex1=5000',
+                    'ex2=1',
+                    f'val={str(op_offset2)}',
+                ]
+            ),
+            c1.join(
+                ['type=button', 'pos=60,210,160,0', 'cap=' + _('OK'), 'ex0=1']
+            ),
+            c1.join(
+                ['type=button', 'pos=164,210,264,0', 'cap=' + _('Cancel')]
+            ),
+        ]
+    )
+
 
     res = dlg_custom(_('Sort'), size_x, size_y, text)
     if res is None: return

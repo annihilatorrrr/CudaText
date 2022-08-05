@@ -14,16 +14,11 @@ op_ini_case = 'ini_files_case_sensitive'
 def ini_sort_content(lines, and_keys):
 
     case_sens = ini_read(fn_ini, op_section, op_ini_case, '0')=='1'
-    if case_sens:
-        sortkey = lambda s: s
-    else:
-        sortkey = str.casefold
-
+    sortkey = (lambda s: s) if case_sens else str.casefold
     section = ''
     sections = {}
     for line in lines:
-        line = line.strip()
-        if line:
+        if line := line.strip():
             if line.startswith('['):
                 section = line
                 continue

@@ -6,6 +6,7 @@ Version:
 ToDo: (see end of file)
 '''
 
+
 import  re, colorsys
 import  cudatext        as app
 #from    cudatext    import ed
@@ -14,8 +15,7 @@ import  cudax_lib       as apx
 from    .cd_plug_lib    import *
 _   = get_translation(__file__) # I18N
 
-pass;                           # Logging
-pass;                           LOG = (-2==-2)  # Do or dont logging.
+LOG = True
 
 get_hist_   = lambda k,v:   get_hist(k, v, module_name='palettes')
 set_hist_   = lambda k,v:   set_hist(k, v, module_name='palettes')

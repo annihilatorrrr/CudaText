@@ -29,7 +29,7 @@ class TestOptEdD(unittest.TestCase):
                               hide_lex_fil=True,
                               )
                     ).show(title)
-        
+
         self.assertTrue(True)
 
 

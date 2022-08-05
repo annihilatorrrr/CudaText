@@ -178,12 +178,10 @@ def is_abr_before_caret(ed):
         return True
 
     word = s[x1:x2]
-    #print('Emmet word:', word)
-    if 'HTML' in ed.get_prop(PROP_LEXER_CARET):
-        if word in HTML_TAGS:
-            return True
-    else:
+    if 'HTML' not in ed.get_prop(PROP_LEXER_CARET):
         # return True for CSS and PHP lexers
+        return True
+    if word in HTML_TAGS:
         return True
 
 
@@ -235,9 +233,7 @@ def tabstop(cnt):
 
     if cnt<9:
         return '${%d}'%(cnt+1)
-    if cnt==9:
-        return '${0}'
-    return ''
+    return '${0}' if cnt==9 else ''
 
 
 def do_expand_abbrev(abr):
@@ -274,7 +270,7 @@ class Command:
 
         import webbrowser
         fn = os.path.join(os.path.dirname(__file__), 'help.html')
-        webbrowser.open_new_tab('file://'+fn)
+        webbrowser.open_new_tab(f'file://{fn}')
         msg_status(_('Opened browser'))
 
 
@@ -295,8 +291,7 @@ class Command:
         if not abr:
             return
 
-        res = emmet(EMMET_WRAP, abr, get_syntax(), text_sel)
-        if res:
+        if res := emmet(EMMET_WRAP, abr, get_syntax(), text_sel):
             do_insert_result(x0, y0, x1, y1, res)
 
 
@@ -327,7 +322,7 @@ class Command:
 
         x0, y0, x1, y1 = ed.get_carets()[0]
         xstart = x0
-        do_insert_result(xstart, y0, x0, y0, text)
+        do_insert_result(xstart, y0, xstart, y0, text)
 
     def dialog(self):
 
@@ -338,6 +333,5 @@ class Command:
 
     def on_key(self, ed_self, key, state):
 
-        if key==9 and state=='':
-            if is_abr_before_caret(ed_self):
-                return self.expand_ex(False)
+        if key == 9 and state == '' and is_abr_before_caret(ed_self):
+            return self.expand_ex(False)

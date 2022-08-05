@@ -10,6 +10,7 @@ Content
 ToDo: (see end of file)
 '''
 
+
 import  sys, os, gettext, logging, inspect, time, collections, json, re, subprocess
 from    time        import perf_counter
 
@@ -22,9 +23,8 @@ except:
     from    sw              import ed
     from . import cudax_lib     as apx
 
-pass;                           # Logging
-pass;                           from pprint import pformat
-pass;                           import tempfile
+from pprint import pformat
+import tempfile
 
 odict       = collections.OrderedDict
 T,F,N       = True, False, None
@@ -69,7 +69,7 @@ REDUCTIONS  = {'lb'     :'label'
             ,  'edr'    :'editor'
             ,  'sb'     :'statusbar'
             ,  'bte'    :'button_ex'
-            
+
 #           ,  'fid'    :'focused'
             ,  'cols'   :'columns'
             }
@@ -138,22 +138,22 @@ class Tr :
             if '(:)' in self.ops :
                 # Начать замер нового интервала
                 self.tm = perf_counter()
-        def log(self, msg='') :
-            if '(:)' in self.ops :
-                msg = '{}(:)=[{}]{}'.format( self.nm, Tr.format_tm( perf_counter() - self.tm ), msg ) 
+        def log(self, msg=''):
+            if '(:)' in self.ops:
+                msg = f'{self.nm}(:)=[{Tr.format_tm(perf_counter() - self.tm)}]{msg}'
                 logging.debug( self.tr.format_msg(msg, ops='') )
-        def __del__(self) :
+        def __del__(self):
             #pass;                  logging.debug('in del')
-            if '(:)' in self.ops :
-                msg = '{}(:)=[{}]'.format( self.nm, Tr.format_tm( perf_counter() - self.tm ) ) 
+            if '(:)' in self.ops:
+                msg = f'{self.nm}(:)=[{Tr.format_tm(perf_counter() - self.tm)}]'
                 logging.debug( self.tr.format_msg(msg, ops='') )
             if '>>' in self.ops :
                 self.tr.gap = self.tr.gap[:-1]
                 
-    def log(self, msg='') :
-        if '(:)' in msg :
+    def log(self, msg=''):
+        if '(:)' in msg:
             Tr.TrLiver.cnt += 1
-            msg     = msg.replace( '(:)', '{}(:)'.format(Tr.TrLiver.cnt) )  
+            msg = msg.replace('(:)', f'{Tr.TrLiver.cnt}(:)')
         logging.debug( self.format_msg(msg) )
         if '>>' in msg :
             self.gap = self.gap + c9
@@ -166,13 +166,13 @@ class Tr :
         # Tr.log
             
 #   def format_msg(self, msg, dpth=2, ops='+fun:ln +wait==') :
-    def format_msg(self, msg, dpth=3, ops='+fun:ln +wait==') :
-        if '(==' in msg :
+    def format_msg(self, msg, dpth=3, ops='+fun:ln +wait=='):
+        if '(==' in msg:
             # Начать замер нового интервала
             self.stms   = self.stms + [perf_counter()]
-            msg = msg.replace( '(==', '(==[' + Tr.format_tm(0) + ']' )
+            msg = msg.replace('(==', f'(==[{Tr.format_tm(0)}]')
 
-        if '###' in msg :
+        if '###' in msg:
             # Показать стек
             st_inf  = '\n###'
             for fr in inspect.stack()[1+dpth:]:
@@ -182,10 +182,10 @@ class Tr :
                     cls = ''
                 fun     = (cls + fr[3]).replace('.__init__','()')
                 ln      = fr[2]
-                st_inf  += '    {}:{}'.format(fun, ln)
+                st_inf += f'    {fun}:{ln}'
             msg    += st_inf
 
-        if '+fun:ln' in ops :
+        if '+fun:ln' in ops:
             frCaller= inspect.stack()[dpth] # 0-format_msg, 1-Tr.log|Tr.TrLiver, 2-log, 3-need func
             try:
                 cls = frCaller[0].f_locals['self'].__class__.__name__ + '.'
@@ -193,16 +193,16 @@ class Tr :
                 cls = ''
             fun     = (cls + frCaller[3]).replace('.__init__','()')
             ln      = frCaller[2]
-            msg     = '[{}]{}{}:{} '.format( Tr.format_tm( perf_counter() - self.tm ), self.gap, fun, ln ) + msg
-        else : 
-            msg     = '[{}]{}'.format( Tr.format_tm( perf_counter() - self.tm ), self.gap ) + msg
+            msg = f'[{Tr.format_tm(perf_counter() - self.tm)}]{self.gap}{fun}:{ln} ' + msg
+        else: 
+            msg = f'[{Tr.format_tm(perf_counter() - self.tm)}]{self.gap}' + msg
 
-        if '+wait==' in ops :
-            if ( '==)' in msg or '==>' in msg ) and len(self.stms)>0 :
+        if '+wait==' in ops:
+            if ( '==)' in msg or '==>' in msg ) and len(self.stms)>0:
                 # Закончить/продолжить замер последнего интервала и вывести его длительность
                 sign    = '==)' if '==)' in msg else '==>'
                 # sign    = icase( '==)' in msg, '==)', '==>' )
-                stm = '[{}]'.format( Tr.format_tm( perf_counter() - self.stms[-1] ) )
+                stm = f'[{Tr.format_tm(perf_counter() - self.stms[-1])}]'
                 msg = msg.replace( sign, sign+stm )
                 if '==)' in msg :
                     del self.stms[-1] 
@@ -210,14 +210,14 @@ class Tr :
             if '=}}' in msg :
                 # Отменить все замеры
                 self.stms   = []
-                
+
         return msg.replace('¬',c9).replace('¶',c10)
         # Tr.format
 
     @staticmethod
-    def format_tm(secs) :
+    def format_tm(secs):
         """ Конвертация количества секунд в 12h34'56.78" """
-        if 0==len(Tr.se_fmt) :
+        if len(Tr.se_fmt) == 0:
             Tr.se_fmt       = '{:'+str(3+Tr.sec_digs)+'.'+str(Tr.sec_digs)+'f}"'
             Tr.mise_fmt     = "{:2d}'"+Tr.se_fmt
             Tr.homise_fmt   = "{:2d}h"+Tr.mise_fmt
@@ -225,11 +225,13 @@ class Tr :
         secs = secs % 3600
         m = int( secs / 60 )
         s = secs % 60
-        return Tr.se_fmt.format(s) \
-                if 0==h+m else \
-               Tr.mise_fmt.format(m,s) \
-                if 0==h else \
-               Tr.homise_fmt.format(h,m,s)
+        return (
+            Tr.se_fmt.format(s)
+            if h + m == 0
+            else Tr.mise_fmt.format(m, s)
+            if h == 0
+            else Tr.homise_fmt.format(h, m, s)
+        )
         # return icase( 0==h+m,   Tr.se_fmt.format(s)
         #             , 0==h,     Tr.mise_fmt.format(m,s)
         #             ,           Tr.homise_fmt.format(h,m,s) )
@@ -270,9 +272,8 @@ def get_desktop_environment():
         if os.environ.get('KDE_FULL_SESSION') == 'true':
             return "kde"
         elif os.environ.get('GNOME_DESKTOP_SESSION_ID'):
-            if not "deprecated" in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
+            if "deprecated" not in os.environ.get('GNOME_DESKTOP_SESSION_ID'):
                 return "gnome2"
-        #From http://ubuntuforums.org/showthread.php?t=652320
         elif is_running("xfce-mcs-manage"):
             return "xfce4"
         elif is_running("ksmserver"):
@@ -285,10 +286,7 @@ def is_running(process):
         s = subprocess.Popen(["ps", "axw"],stdout=subprocess.PIPE)
     except: #Windows
         s = subprocess.Popen(["tasklist", "/v"],stdout=subprocess.PIPE)
-    for x in s.stdout:
-        if re.search(process, str(x)):
-            return True
-    return False
+    return any(re.search(process, str(x)) for x in s.stdout)
 
 ENV2FITS= {'win':
             {'check'      :-2
@@ -335,20 +333,15 @@ def fit_top_by_env(what_tp, base_tp='label'):
     if what_tp==base_tp:
         return 0
     if (what_tp, base_tp) in fit_top_by_env__cash:
-        pass;                  #log('cashed what_tp, base_tp={}',(what_tp, base_tp))
         return fit_top_by_env__cash[(what_tp, base_tp)]
     env     = get_desktop_environment()
-    pass;                      #env = 'mac'
     fit4lb  = ENV2FITS.get(env, ENV2FITS.get('win'))
     fit     = 0
     if base_tp=='label':
-        fit = apx.get_opt('dlg_wrapper_fit_va_for_'+what_tp, fit4lb.get(what_tp, 0))
-        pass;                  #fit_o=fit
-        fit = _os_scale(app.DLG_PROP_GET, {'y':fit})['y']
-        pass;                  #log('what_tp,fit_o,fit,h={}',(what_tp,fit_o,fit,get_gui_height(what_tp)))
+        fit = apx.get_opt(f'dlg_wrapper_fit_va_for_{what_tp}', fit4lb.get(what_tp, 0))
+        fit = _os_scale(app.DLG_PROP_GET, {'y':fit})['y'];                  #log('what_tp,fit_o,fit,h={}',(what_tp,fit_o,fit,get_gui_height(what_tp)))
     else:
         fit = fit_top_by_env(what_tp) - fit_top_by_env(base_tp)
-    pass;                      #log('what_tp, base_tp, fit={}',(what_tp, base_tp, fit))
     return fit_top_by_env__cash.setdefault((what_tp, base_tp), fit)
    #def fit_top_by_env
 

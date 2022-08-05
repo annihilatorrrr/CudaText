@@ -16,6 +16,7 @@ Wiki: github.com/kvichans/cudax_lib/wiki
 ToDo: (see end of file)
 """
 
+
 import  cudatext        as app
 from    cudatext    import ed
 import  cudatext_cmd    as cmds
@@ -71,12 +72,11 @@ DUPLICATION             = 'Duplication'
 ONLY_NORM_SEL_MODE      = '{} works only with normal selection'
 ONLY_SINGLE_CRT         = "{} doesn't work with multi-carets"
 
-pass;                           # Logging
-pass;                           import inspect  # stack
-pass;                           from pprint import pformat
-pass;                           pfrm15=lambda d:pformat(d,width=15)
-pass;                           LOG = (-2==-2)  # Do or dont logging.
-pass;                           log_gap = ''    # use only into log()
+import inspect  # stack
+from pprint import pformat
+pfrm15=lambda d:pformat(d,width=15)
+LOG = True
+log_gap = ''    # use only into log()
 
 APP_DEF_LEX_OPTS    = {}
 APP_DEFAULT_OPTS    = {}
@@ -95,7 +95,7 @@ class Command:
             return app.msg_status(ONLY_SINGLE_CRT.format(DUPLICATION))
 
         (cCrt, rCrt, cEnd, rEnd)    = crts[0]
-        bEmpSel = -1==rEnd
+        bEmpSel = rEnd == -1
         bUseFLn = get_opt('duplicate_full_line_if_no_sel', True)
         bSkip   = get_opt('duplicate_move_down', True)
         if bEmpSel:
@@ -111,9 +111,7 @@ class Command:
             return
 
         (rFr, cFr), (rTo, cTo)  = minmax((rCrt, cCrt), (rEnd, cEnd))
-        pass;                  #LOG and log('(cFr , rFr , cTo , rTo) ={}',(cFr , rFr , cTo , rTo))
         sel_txt = ed.get_text_substr(cFr, rFr, cTo, rTo)
-        pass;                  #LOG and log('sel_txt={}',repr(sel_txt))
         ed.insert(cFr, rFr, sel_txt)
         ed.set_caret(cCrt, rCrt, cEnd, rEnd)
        #def duplicate
@@ -135,7 +133,6 @@ def _check_API(ver):
     return True
 
 def get_app_default_opts(lexer='', **kw):
-    pass;                      #LOG and log('kw={}',kw)
     global APP_DEFAULT_OPTS, APP_DEF_LEX_OPTS
     if not APP_DEFAULT_OPTS:
         # Once load def-opts
@@ -145,7 +142,7 @@ def get_app_default_opts(lexer='', **kw):
 #       APP_DEFAULT_OPTS = _json_loads(open(def_json).read(), **kw)
     if not lexer:
         return APP_DEFAULT_OPTS
-    lex_json        = os.path.join(get_def_setting_dir(), 'lexer {}.json'.format(lexer))
+    lex_json = os.path.join(get_def_setting_dir(), f'lexer {lexer}.json')
     if not os.path.exists(lex_json):
         return APP_DEFAULT_OPTS
     lex_opts    = APP_DEF_LEX_OPTS.get(lexer)
@@ -162,18 +159,15 @@ def get_app_default_opts(lexer='', **kw):
 def _get_file_opts(opts_json, def_opts={}, **kw):
 #   global LAST_FILE_OPTS
     if not os.path.exists(opts_json):
-        pass;                  #LOG and log('no {}',os.path.basename(opts_json))
         LAST_FILE_OPTS.pop(opts_json, None)
         return def_opts
     mtime_os    = os.path.getmtime(opts_json)
     if opts_json not in LAST_FILE_OPTS:
-        pass;                  #LOG and log('load "{}" with mtime_os={}',os.path.basename(opts_json), int(mtime_os))
         opts    = _json_loads(open(opts_json, encoding='utf8').read(), **kw)
         LAST_FILE_OPTS[opts_json]       = (opts, mtime_os)
     else:
         opts, mtime = LAST_FILE_OPTS[opts_json]
         if mtime_os > mtime:
-            pass;              #LOG and log('reload "{}" with mtime, mtime_os={}',os.path.basename(opts_json), (int(mtime), int(mtime_os)))
             opts= _json_loads(open(opts_json, encoding='utf8').read(), **kw)
             LAST_FILE_OPTS[opts_json]   = (opts, mtime_os)
     return opts
@@ -288,14 +282,12 @@ def set_opt(path, value, lev=CONFIG_LEV_USER, ed_cfg=ed, lexer='', user_json='us
     lev = CONFIG_LEV_LEX                                if lexer    else lev
     lex = ''
     if lev==CONFIG_LEV_LEX:
-        lex     = lexer                                 if lexer    else \
-                  ed_cfg.get_prop(app.PROP_LEXER_CARET) if ed_cfg   else ''
+        lex = lexer or (ed_cfg.get_prop(app.PROP_LEXER_CARET) if ed_cfg   else '')
         if not lex: return None # Fail!
     cfg_json= os.path.join(app.app_path(app.APP_DIR_SETTINGS), icase(False,''
               ,lev==CONFIG_LEV_USER                          , user_json
               ,lev==CONFIG_LEV_LEX                           , 'lexer {}.json'.format(lex)
                                                              , ''))
-    pass;                      #LOG and log('cfg_json={}',(cfg_json))
     if not os.path.exists(cfg_json)     and value is     None:
         return None # SUCCESS (or fail?)
 
@@ -395,15 +387,12 @@ def set_opt(path, value, lev=CONFIG_LEV_USER, ed_cfg=ed, lexer='', user_json='us
         cre_key_val = re.compile(sre_key_val, re.MULTILINE)  # MULTILINE for ^
         mt_key_val  = cre_key_val.search(body)
         has_pair    = mt_key_val is not None
-        pass;                  #LOG and log('re_key_val, has_pair={}',(re_key_val,has_pair))
         if False:pass
         elif has_pair and value is None:
-            # Delete!
-            pass;              #LOG and log('del!',)
             body    = cre_key_val.sub('', body)     # Will empty line
         elif has_pair and value is not None:
             # Update?
-            if mt_key_val.group(1).strip(' \t,') == value4js:
+            if mt_key_val[1].strip(' \t,') == value4js:
                 # Skip! Value is same
                 return value
             # Update!
@@ -413,8 +402,6 @@ def set_opt(path, value, lev=CONFIG_LEV_USER, ed_cfg=ed, lexer='', user_json='us
             # Skip! Nothing to delete
             return value
         elif not has_pair:
-            # Add! before end
-            pass;              #LOG and log('add!',)
             body    = body.rstrip(' \t\r\n')[:-1].rstrip(' \t\r\n')
             body= body+'{}\n    "{}": {},\n}}'.format(
                          '' if body[-1] in ',{' else ','
@@ -444,7 +431,6 @@ def _move_caret_down(cCrtSmb, rCrt, ed_=ed, id_crt=app.CARET_SET_ONE):
             ed_         Editor
             id_crt      CARET_SET_ONE or CARET_SET_INDEX+N for caret with index N
     '''
-    pass;                      #LOG and log('cCrtSmb, rCrt, id_crt==app.CARET_SET_ONE={}',(cCrtSmb, rCrt, id_crt==app.CARET_SET_ONE))
     if (rCrt+1)>=ed_.get_line_count():    return
     colCrt  = ed.convert(app.CONVERT_CHAR_TO_COL, cCrtSmb, rCrt  )[0]
     cCrtSmb1= ed.convert(app.CONVERT_COL_TO_CHAR, colCrt,  rCrt+1)[0]
@@ -474,6 +460,7 @@ def _json_loads(s, **kw):
                         return line[:pos]
                 pos += 1
         return line
+
     s = re.sub(r'^.*//.*$'     , rm_cm, s, flags=re.MULTILINE)     # re.MULTILINE for ^$
     s = re.sub(r'{\s*,'         , r'{' , s)
     s = re.sub(r',\s*}'         , r'}' , s)
@@ -482,8 +469,6 @@ def _json_loads(s, **kw):
     try:
         ans = json.loads(s, **kw)
     except:
-        pass;                   #LOG and log('FAIL: s={}',s)
-        pass;                   #LOG and log('sys.exc_info()={}',sys.exc_info())
         log_file    = kw.get('log_file', _get_log_file())
         open(log_file, 'a').write('_json_loads FAIL: s=\n'+s)
         print('ERROR: error on loading json. Log file:', log_file)
@@ -522,16 +507,12 @@ def get_enabled_lexers():
 def choose_avail_lexer(lxr_names):
     """ Choose from lxr_names first enabled lexer """
     all_lxrs  = get_enabled_lexers()
-    for lxr in lxr_names:
-        if lxr in all_lxrs:
-            return lxr
-    return ''
+    return next((lxr for lxr in lxr_names if lxr in all_lxrs), '')
 
 def _get_log_file():
     return os.path.join(app.app_path(app.APP_DIR_SETTINGS), 'cudax.log')
 
 def get_def_setting_dir():
-    pass;                     #LOG and log('os.path.dirname(app.app_path(app.APP_DIR_SETTINGS))={}', os.path.dirname(app.app_path(app.APP_DIR_SETTINGS)))
     return app.app_path(app.APP_DIR_SETTINGS_DEF)
     #def get_def_setting_dir
 
@@ -565,7 +546,7 @@ def int_to_html_color(n):
     """
     s = '%06x' % n
     r, g, b = s[4:], s[2:4], s[:2]
-    return '#'+r+g+b
+    return f'#{r}{g}{b}'
    #def int_to_html_color
 
 def html_color_to_int(s):
@@ -577,10 +558,9 @@ def html_color_to_int(s):
     if len(s)==3:
         s = s[0]*2 + s[1]*2 + s[2]*2
     if len(s)!=6:
-        raise Exception('Incorrect color token: '+s)
-    s = s[4:6] + s[2:4] + s[0:2]
-    color = int(s, 16)
-    return color
+        raise Exception(f'Incorrect color token: {s}')
+    s = s[4:6] + s[2:4] + s[:2]
+    return int(s, 16)
    #def html_color_to_int
 
 def icase(*pars):
@@ -591,10 +571,10 @@ def icase(*pars):
             icase(1==2,'a', 3==4,'b', 'c') == 'c'
             icase(1==2,'a', 3==4,'b') == None
     """
-    for ppos in range(1,len(pars),2) :
-        if pars[ppos-1] :
-            return pars[ppos]
-    return pars[-1] if 1==len(pars)%2 else None
+    return next(
+        (pars[ppos] for ppos in range(1, len(pars), 2) if pars[ppos - 1]),
+        pars[-1] if len(pars) % 2 == 1 else None,
+    )
     #def icase
 
 def log(msg='', *args, **kwargs):
@@ -622,15 +602,14 @@ def log(msg='', *args, **kwargs):
     """
     global log_gap
     lctn    = ''
-    if -1==-1: # add "location"
-        frCaller= inspect.stack()[1]    # 0-log, 1-need func
-        try:
-            cls = frCaller[0].f_locals['self'].__class__.__name__ + '.'
-        except:
-            cls = ''
-        fun,ln  = (cls + frCaller[3]).replace('.__init__','()'), frCaller[2]
-        lctn    = '{}:{} '.format(fun, ln)
-    if '###' in msg :   # Add stack info
+    frCaller= inspect.stack()[1]    # 0-log, 1-need func
+    try:
+        cls = frCaller[0].f_locals['self'].__class__.__name__ + '.'
+    except:
+        cls = ''
+    fun,ln  = (cls + frCaller[3]).replace('.__init__','()'), frCaller[2]
+    lctn = f'{fun}:{ln} '
+    if '###' in msg:   # Add stack info
         st_inf  = '\n###'
         for fr in inspect.stack()[2:]:
             try:
@@ -638,7 +617,7 @@ def log(msg='', *args, **kwargs):
             except:
                 cls = ''
             fun,ln  = (cls + fr[3]).replace('.__init__','()'), fr[2]
-            st_inf += '    {}:{}'.format(fun, ln)
+            st_inf += f'    {fun}:{ln}'
         msg    += st_inf
 
     if args or kwargs:
@@ -648,15 +627,7 @@ def log(msg='', *args, **kwargs):
 
     _out_h  = kwargs.pop('_out_h', None)
     _out_s  = kwargs.pop('_out_s', None)
-    pass;                      #print('_out_h={}, _out_s={}'.format(_out_h, _out_s))
-    if False:pass
-    elif _out_h:
-        _out_h.write(msg+chr(10))
-    elif _out_s:
-        with open(_out_s, 'a') as _out_h:
-            _out_h.write(msg+chr(10))
-    else:
-        print(msg)
+    print(msg)
 
     log_gap = icase('<<' in msg, log_gap[:-1]
                    ,'{{' in msg, ''
@@ -694,9 +665,8 @@ def get_translation(plug_file):
                  plug_dir                        + os.sep + 'lang',
                ]
     _        =  lambda x: x
-    pass;                      #return _
     for lng_dir in lng_dirs:
-        lng_mo = lng_dir+'/{}/LC_MESSAGES/{}.mo'.format(lng, plug_mod)
+        lng_mo = lng_dir + f'/{lng}/LC_MESSAGES/{plug_mod}.mo'
         if os.path.isfile(lng_mo):
             t = gettext.translation(plug_mod, lng_dir, languages = [lng])
             _ = t.gettext

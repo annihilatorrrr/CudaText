@@ -146,7 +146,7 @@ class JsonEd:
         self.edt.set_prop(PROP_LEXER_FILE, 'JSON')
 
         _os_suffix = app_proc(PROC_GET_OS_SUFFIX, '')
-        font = get_opt('font_name'+_os_suffix),  get_opt('font_size'+_os_suffix)
+        font = get_opt(f'font_name{_os_suffix}'), get_opt(f'font_size{_os_suffix}')
 
         for _edt in [self.edt, self.memo]:
             _edt.set_prop(PROP_GUTTER_ALL, False)
@@ -213,7 +213,7 @@ class JsonEd:
         self.edt.set_text_all(json.dumps(self.opt['def'], indent=2))
 
     def undo_changes(self):
-        self.edt.set_text_all(self.opt['j{}vl'.format(self.scope)])
+        self.edt.set_text_all(self.opt[f'j{self.scope}vl'])
         self.memo.set_text_all(self.opt['cmt'])
 
     def close(self):

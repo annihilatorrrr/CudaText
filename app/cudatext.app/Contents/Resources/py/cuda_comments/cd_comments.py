@@ -6,6 +6,7 @@ Version:
     '1.0.0 2022-04-21'
 '''
 
+
 import  os
 import  cudatext            as app
 from    cudatext        import ed
@@ -16,7 +17,7 @@ from    .cd_plug_lib    import *
 # I18N
 _       = get_translation(__file__)
 
-pass;                           LOG     = (-1==-1)  # Do or dont logging.
+LOG = True
 
 class Command:
     def __init__(self):
@@ -113,13 +114,21 @@ class Command:
                 indent = line[:len(line)-len(line_x)]
                 commented1 = line.startswith(rng1) and line.endswith(rng2)
                 commented2 = line_x.startswith(rng1) and line_x.endswith(rng2)
-                if commented1 or commented2:
-                    if cmt_act=='add':
-                        continue
-                    if commented1:
-                        line_new = line[len(rng1): -len(rng2)]
-                    elif commented2:
-                        line_new = indent + line_x[len(rng1): -len(rng2)]
+                if (
+                    commented1
+                    and cmt_act == 'add'
+                    or not commented1
+                    and commented2
+                    and cmt_act == 'add'
+                ):
+                    continue
+                elif commented1 or commented2:
+                    line_new = (
+                        line[len(rng1) : -len(rng2)]
+                        if commented1
+                        else indent + line_x[len(rng1) : -len(rng2)]
+                    )
+
                 else:
                     if cmt_act=='del':
                         continue
@@ -136,9 +145,8 @@ class Command:
             app.msg_status(_('Toggled commenting for %d line(s)')%changed)
             if len(carets)==1:
                 x, y, x1, y1 = carets[0]
-                if y1<0:
-                    if apx.get_opt('comment_move_down', True):
-                        apx._move_caret_down(x, y)
+                if y1 < 0 and apx.get_opt('comment_move_down', True):
+                    apx._move_caret_down(x, y)
         else:
             app.msg_status(_('No commenting action was done'))
 
@@ -159,8 +167,6 @@ class Command:
             return
         cmt_sgn   = prop['c_line']
         cmt_range = prop['c_str']
-        pass; #log('cmt_type, lex, cmt_sgn={}', (cmt_type, lex, cmt_sgn))
-
         if not cmt_sgn:
             if cmt_range:
                 self.line_cmt_by_range_cmt(ed_, cmt_range[0], cmt_range[1], cmt_act, cmt_type)
@@ -173,39 +179,15 @@ class Command:
         rWrks       = []
         use_rep_lines = True # use API replace_lines()
         y1,y2,lines = (-1, -1, []) if use_rep_lines else (None, None, None)
-        pass;                  #LOG and log('ed_.get_sel_mode(),app.SEL_NORMAL,app.SEL_COLUMN={}', (ed_.get_sel_mode(),app.SEL_NORMAL,app.SEL_COLUMN))
         crts        = ed_.get_carets()
-        if False:pass
-        elif ed_.get_sel_mode() == app.SEL_NORMAL:
-            empty_sel     = 1==len(crts) and -1==crts[0][3]
-            for (cCrt, rCrt, cEnd, rEnd) in crts:
-                # sort 2 pairs
-                if rEnd>=0 and (rCrt, cCrt)>(rEnd, cEnd):
-                    cCrt, rCrt, cEnd, rEnd = cEnd, rEnd, cCrt, rCrt
-                # selection until start of line?
-                if rEnd>0 and cEnd==0:
-                    rEnd -= 1
-                rWrks      += list(range(rCrt, rEnd+1))
-            use_rep_lines  = use_rep_lines and 1==len(crts)
-        elif ed_.get_sel_mode() == app.SEL_COLUMN:
-            (cBgn
-            ,rSelBgn
-            ,cEnd
-            ,rSelEnd)   = ed_.get_sel_rect()
-            rWrks       = list(range(rSelBgn, rSelEnd+1))
         if not rWrks:
             rWrks       = [crts[0][1]]
-        pass;                  #log('rWrks={}', (rWrks))
         y1,y2       = (rWrks[0],rWrks[-1]) if use_rep_lines else (y1,y2)
-        pass;                  #LOG and log('y1,y2,lines={}', (y1,y2,lines))
-
         # read options
         save_bd_col = apx.get_opt('comment_save_column' , False)
         at_min_bd   = apx.get_opt('comment_equal_column', False)
         skip_blank  = apx.get_opt('comment_skip_blank', False)
-        by_1st      = apx.get_opt('comment_toggle_by_nonempty', False)
-
-        if by_1st:
+        if by_1st := apx.get_opt('comment_toggle_by_nonempty', False):
             # find index of first non-blank line
             row1st = -1
             for i in range(y1, y2+1):
@@ -220,11 +202,12 @@ class Command:
             row1st = rWrks[0]
 
         # do we need to 'comment' or 'uncomment'?
-        do_uncmt    = ed_.get_text_line(row1st).lstrip().startswith(cmt_sgn) \
-                        if cmt_act=='bgn' else \
-                      True \
-                        if cmt_act=='del' else \
-                      False
+        do_uncmt = (
+            ed_.get_text_line(row1st).lstrip().startswith(cmt_sgn)
+            if cmt_act == 'bgn'
+            else cmt_act == 'del'
+        )
+
         # work
         col_min_bd  = 1000 # infinity
         col_kept    = False # plugin applied the "Try to keep text position"
@@ -232,20 +215,18 @@ class Command:
             for rWrk in rWrks:
                 line        = ed_.get_text_line(rWrk)
                 pos_body    = line.index(line.lstrip())
-                pos_body    = len(line) if 0==len(line.lstrip()) else pos_body
+                pos_body = len(line) if len(line.lstrip()) == 0 else pos_body
                 col_min_bd  = min(pos_body, col_min_bd)
-                if 0==col_min_bd:
+                if col_min_bd == 0:
                     break # for rWrk
         blnks4cmt   = ' '*len(cmt_sgn) # '\t'.expandtabs(len(cmt_sgn))
-        pass;                  #log('rWrks,do_uncmt, save_cols, at_min_bd, col_min_bd={}', (rWrks,do_uncmt,save_bd_col,at_min_bd,col_min_bd))
         for rWrk in rWrks:
             line    = ed_.get_text_line(rWrk)
             if skip_blank and not line.strip():
                 lines += [line]
                 continue
             pos_body= line.index(line.lstrip())
-            pos_body= len(line) if 0==len(line.lstrip()) else pos_body
-            pass;              #LOG and log('rWrk,pos_body,line={}', (rWrk,pos_body,line))
+            pos_body = len(line) if len(line.lstrip()) == 0 else pos_body
             if do_uncmt:
                 # Uncomment!
                 if not line[pos_body:].startswith(cmt_sgn):
@@ -253,56 +234,19 @@ class Command:
                     if use_rep_lines:
                         lines += [line]
                     continue    #for rWrk
-                if False:pass
-                elif len(line)==len(cmt_sgn): # and line.startswith(cmt_sgn)
-                    line = ''
-                elif save_bd_col and (' '==line[0] or
-                                      ' '==line[pos_body+len(cmt_sgn)]):
-                    # Before or after cmt_sgn must be blank
-                    line = line.replace(cmt_sgn, blnks4cmt, 1)
-                    col_kept = True
-                else:
-                    line = line.replace(cmt_sgn, ''       , 1)
-            else:
-                # Comment!
-                if cmt_type=='bod' and line[pos_body:].startswith(cmt_sgn):
-                    # Body comment already sets - willnot double it
-                    if use_rep_lines:
-                        lines += [line]
-                    continue    #for rWrk
-                if False:pass
-                elif cmt_type=='1st' and save_bd_col and line.startswith(blnks4cmt) :
-                    line = line.replace(blnks4cmt, cmt_sgn, 1)
-                    col_kept = True
-               #elif cmt_type=='1st' and save_bd_col #  !line.startswith(blnks4cmt) :
-                elif cmt_type=='1st':#  !save_bd_col
-                    line = cmt_sgn+line
-                elif cmt_type=='bod' and save_bd_col and line.startswith(blnks4cmt):
-                    col_kept = True
-                    pos_cmnt = col_min_bd if at_min_bd else pos_body
-                    pass;          #LOG and log('pos_cmnt={}', (pos_cmnt))
-                    if pos_cmnt>=len(cmt_sgn):
-                        line = line[:pos_cmnt-len(cmt_sgn)]+cmt_sgn+line[pos_cmnt:             ]
-                    else:
-                        line = line[:pos_cmnt             ]+cmt_sgn+line[pos_cmnt+len(cmt_sgn):]
-                   #line = line[:pos_cmnt-len(cmt_sgn)]+cmt_sgn+line[pos_cmnt:]
-                   #line = line[:pos_body-len(cmt_sgn)]+cmt_sgn+line[pos_body:]
-               #elif cmt_type=='bod' and save_bd_col #  !line.startswith(blnks4cmt) :
-                elif cmt_type=='bod':#  !save_bd_col
-                    pos_cmnt = col_min_bd if at_min_bd else pos_body
-                    pass;      #LOG and log('pos_cmnt={}', (pos_cmnt))
-                    line = line[:pos_cmnt]             +cmt_sgn+line[pos_cmnt:]
-                   #line = line[:pos_body]             +cmt_sgn+line[pos_body:]
-
-            pass;              #LOG and log('new line={}', (line))
+                line = line.replace(cmt_sgn, ''       , 1)
+            elif cmt_type=='bod' and line[pos_body:].startswith(cmt_sgn):
+                # Body comment already sets - willnot double it
+                if use_rep_lines:
+                    lines += [line]
+                continue    #for rWrk
             if use_rep_lines:
                 lines += [line]
             else:
-                pass;           log('line={}',(line))
+                log('line={}',(line))
                 ed_.set_text_line(rWrk, line)
-            #for rWrk
+                #for rWrk
         if use_rep_lines:
-            pass;              #log('y1, y2, len(lines), lines={}',(y1, y2, len(lines), lines))
             if y1==y2:
                 ed_.set_text_line(y1, lines[0])
             else:

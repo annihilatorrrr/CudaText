@@ -30,12 +30,19 @@ if DEBIAN_UBUNTU:
         r' href="(\w+://[\w\.]+/projects/cudatext/files/release/([\d\.]+)/cudatext_([\d\.\-]+)_'+ \
         TEXT_WS + '_' + TEXT_CPU + '.deb/download)"'
 else:
-    DOWNLOAD_REGEX = \
-        r' href="(\w+://[\w\.]+/projects/cudatext/files/release/([\d\.]+)/cudatext-'+ \
-        TEXT_OS + '-' + \
-        ((TEXT_WS + '-') if TEXT_OS!='windows' else '') + \
-        TEXT_CPU + r'-[\d\.]+'+ \
-        r'\.(zip|dmg|tar\.xz|tar)/download)"'
+    DOWNLOAD_REGEX = (
+        (
+            (
+                r' href="(\w+://[\w\.]+/projects/cudatext/files/release/([\d\.]+)/cudatext-'
+                + TEXT_OS
+                + '-'
+                + (f'{TEXT_WS}-' if TEXT_OS != 'windows' else '')
+            )
+            + TEXT_CPU
+        )
+        + r'-[\d\.]+'
+    ) + r'\.(zip|dmg|tar\.xz|tar)/download)"'
+
 REGEX_GROUP_VER = 1
     
 
@@ -63,7 +70,7 @@ def check_cudatext():
     text = open(fn, encoding='utf8').read()
     items = re.findall(VERSION_REGEX, text)
     if not items:
-        app.msg_status(_('Cannot find app version: '+url))
+        app.msg_status(_(f'Cannot find app version: {url}'))
         return
 
     items = sorted(items, reverse=True)
@@ -82,13 +89,13 @@ def check_cudatext():
     text = open(fn, encoding='utf8').read()
     items = re.findall(DOWNLOAD_REGEX, text)
     if not items:
-        app.msg_status(_('Cannot find links: '+url))
+        app.msg_status(_(f'Cannot find links: {url}'))
         return
 
     items = sorted(items, key=lambda i:i[REGEX_GROUP_VER], reverse=True)
     print(_('Found links:'))
     for i in items:
-        print('  '+i[0])
+        print(f'  {i[0]}')
 
     url = items[0][0]
     ver_inet = items[0][REGEX_GROUP_VER]

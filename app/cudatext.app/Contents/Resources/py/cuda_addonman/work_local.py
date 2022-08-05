@@ -46,9 +46,9 @@ def get_props_of_zip_filename(zip_fn):
 
         if typ=='cudatext-plugin':
             d = 'py'
-            files = [subdir+'/']
+            files = [f'{subdir}/']
         elif typ=='cudatext-data':
-            d = 'data/'+subdir
+            d = f'data/{subdir}'
         elif typ=='lexer':
             d = 'data/lexlib'
         elif typ=='lexer-lite':
@@ -137,17 +137,15 @@ def get_installed_choice(caption, exclude_list=None):
     """
     lmod = get_installed_modules()
     if exclude_list:
-        lmod = [i for i in lmod if not i in exclude_list]
+        lmod = [i for i in lmod if i not in exclude_list]
     ldesc = [get_name_of_module(l) for l in lmod]
     res = dlg_menu(DMENU_LIST, ldesc, caption=caption)
-    if res is None:
-        return None
-    return lmod[res]
+    return None if res is None else lmod[res]
 
 
 def get_installed_addons(ignore={}):
 
-    exclude_modules = ignore.get('plugins', []) 
+    exclude_modules = ignore.get('plugins', [])
     exclude_lexers = ignore.get('lexers', [])
     exclude_lexers_lite = ignore.get('lexers_lite', [])
     exclude_themes = ignore.get('themes', [])
@@ -157,102 +155,120 @@ def get_installed_addons(ignore={}):
 
     d = DIR_PY
     l = get_installed_modules()
-    l = [i for i in l if not i in exclude_modules]
-    res = [{
-        'kind': 'plugin',
-        'name': get_name_of_module(i),
-        'module': i,
-        'files': [
-            os.path.join(d, i)+'/',
-            ],
-        } for i in l]
+    l = [i for i in l if i not in exclude_modules]
+    res = [
+        {
+            'kind': 'plugin',
+            'name': get_name_of_module(i),
+            'module': i,
+            'files': [f'{os.path.join(d, i)}/'],
+        }
+        for i in l
+    ]
+
 
     d = os.path.join(DIR_DATA, 'lexlib')
     d_acp = os.path.join(DIR_DATA, 'autocomplete')
     if os.path.isdir(d):
         l = os.listdir(d)
         l = [i.split('.')[0] for i in l if i.endswith('.lcf')]
-        l = [i for i in l if not i in exclude_lexers]
+        l = [i for i in l if i not in exclude_lexers]
         l = sorted(l)
-        res += [{
-            'kind': 'lexer',
-            'name': i,
-            'files': [
-                os.path.join(d, i+'.lcf'),
-                os.path.join(d, i+'.cuda-lexmap'),
-                os.path.join(d_acp, i+'.acp'),
+        res += [
+            {
+                'kind': 'lexer',
+                'name': i,
+                'files': [
+                    os.path.join(d, f'{i}.lcf'),
+                    os.path.join(d, f'{i}.cuda-lexmap'),
+                    os.path.join(d_acp, f'{i}.acp'),
                 ],
-            } for i in l]
+            }
+            for i in l
+        ]
+
 
     d = os.path.join(DIR_DATA, 'lexliblite')
     if os.path.isdir(d):
         l = os.listdir(d)
         l = [i.split('.')[0] for i in l if i.endswith('.cuda-litelexer')]
-        l = [i for i in l if not i in exclude_lexers_lite]
+        l = [i for i in l if i not in exclude_lexers_lite]
         l = sorted(l)
-        res += [{
-            'kind': 'lexer',
-            'name': i+' ^',
-            'files': [
-                os.path.join(d, i+'.cuda-litelexer'),
-                ],
-            } for i in l]
+        res += [
+            {
+                'kind': 'lexer',
+                'name': f'{i} ^',
+                'files': [os.path.join(d, f'{i}.cuda-litelexer')],
+            }
+            for i in l
+        ]
+
 
     d = os.path.join(DIR_DATA, 'snippets')
     if os.path.isdir(d):
         l = os.listdir(d)
-        l = [i for i in l if not i in exclude_snippets]
+        l = [i for i in l if i not in exclude_snippets]
         l = sorted(l)
-        res += [{
-            'kind': 'snippets',
-            'name': i,
-            'files': [
-                os.path.join(d, i)+'/',
-                ],
-            } for i in l]
+        res += [
+            {
+                'kind': 'snippets',
+                'name': i,
+                'files': [f'{os.path.join(d, i)}/'],
+            }
+            for i in l
+        ]
+
 
     d = os.path.join(DIR_DATA, 'snippetsx')
     if os.path.isdir(d):
         l = os.listdir(d)
-        l = [i for i in l if not i in exclude_snippetsx]
+        l = [i for i in l if i not in exclude_snippetsx]
         l = sorted(l)
-        res += [{
-            'kind': 'snippetsx',
-            'name': i,
-            'files': [
-                os.path.join(d, i)+'/',
-                ],
-            } for i in l]
+        res += [
+            {
+                'kind': 'snippetsx',
+                'name': i,
+                'files': [f'{os.path.join(d, i)}/'],
+            }
+            for i in l
+        ]
+
 
     d = os.path.join(DIR_DATA, 'themes')
     if os.path.isdir(d):
         l = os.listdir(d)
         l = [i.split('.')[0] for i in l if i.endswith('.cuda-theme-syntax') or i.endswith('.cuda-theme-ui')]
-        l = [i for i in l if not i in exclude_themes]
+        l = [i for i in l if i not in exclude_themes]
         l = list(set(l)) # del duplicates
         l = sorted(l)
-        res += [{
-            'kind': 'theme',
-            'name': i,
-            'files': [
-                os.path.join(d, i+'.cuda-theme-syntax'),
-                os.path.join(d, i+'.cuda-theme-ui'),
+        res += [
+            {
+                'kind': 'theme',
+                'name': i,
+                'files': [
+                    os.path.join(d, f'{i}.cuda-theme-syntax'),
+                    os.path.join(d, f'{i}.cuda-theme-ui'),
                 ],
-            } for i in l]
+            }
+            for i in l
+        ]
+
 
     d = os.path.join(DIR_DATA, 'lang')
     if os.path.isdir(d):
         l = os.listdir(d)
         l = [i.split('.')[0] for i in l if i.endswith('.ini')]
-        l = [i for i in l if not i in exclude_translations]
+        l = [i for i in l if i not in exclude_translations]
         l = sorted(l)
-        res += [{
-            'kind': 'translation',
-            'name': i,
-            'files': [
-                os.path.join(d, i+'.ini'),
-                ],
-            } for i in l]
+        res += [
+            {
+                'kind': 'translation',
+                'name': i,
+                'files': [os.path.join(d, f'{i}.ini')],
+            }
+            for i in l
+        ]
+
 
     return res
 
@@ -264,8 +280,7 @@ def get_packages_ini():
 
 def do_save_version(url, fn, version):
 
-    props = get_props_of_zip_filename(fn)
-    if props:
+    if props := get_props_of_zip_filename(fn):
         d, f, m = props
         fn = get_packages_ini()
         sec = os.path.basename(url)
@@ -288,7 +303,7 @@ def do_remove_version_of_plugin(mod):
     config.read(fn)
     for sec in config.sections():
         cfg = config[sec]
-        if cfg.get('d')=='py' and cfg.get('f')==mod+'/':
+        if cfg.get('d') == 'py' and cfg.get('f') == f'{mod}/':
             del config[sec]
             with open(fn, 'w') as f:
                 config.write(f, False)

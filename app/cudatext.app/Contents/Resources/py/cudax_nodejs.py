@@ -38,7 +38,7 @@ def run_node(text, params_list):
               stderr=subprocess.PIPE)
         except OSError:
             raise Exception(MSG_CANNOT_RUN_NODE)
-    
+
 
     stdout, stderr = p.communicate(text.encode(enc))
     if stdout:

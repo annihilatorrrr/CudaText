@@ -12,16 +12,13 @@ from cudax_lib import get_translation
 _   = get_translation(__file__)  # i18n
 
 def get_url(url, fn, del_first=False):
-    fn_temp = fn+'.download'
+    fn_temp = f'{fn}.download'
     if os.path.isfile(fn_temp):
         os.remove(fn_temp)
     if del_first and os.path.isfile(fn):
         os.remove(fn)
 
-    if opt.proxy:
-        proxies = { 'http': opt.proxy, 'https': opt.proxy, }
-    else:
-        proxies = None
+    proxies = { 'http': opt.proxy, 'https': opt.proxy, } if opt.proxy else None
     #print('proxy', proxies)
 
     while True:
@@ -106,8 +103,7 @@ def get_remote_addons_list(channels):
     res = []
     print(_('Read channels:'))
     for ch in channels:
-        items = get_channel(ch)
-        if items:
+        if items := get_channel(ch):
             res += items
         else:
             return

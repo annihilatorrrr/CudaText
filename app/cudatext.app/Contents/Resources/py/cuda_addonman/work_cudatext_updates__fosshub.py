@@ -18,7 +18,7 @@ UNIX_CPU = 'amd64' if X64 else 'i386'
 DOWNLOAD_PAGE = 'https://www.fosshub.com/CudaText.html'
 REGEX_GROUP_VER = 1
 
-LINUX_ENDING = '-linux-gtk2-'+UNIX_CPU+'-([^\-]+)\.tar\.xz'
+LINUX_ENDING = f'-linux-gtk2-{UNIX_CPU}' + '-([^\-]+)\.tar\.xz'
 if OS == 'Linux':
     import subprocess
     try:
@@ -70,7 +70,7 @@ def check_cudatext():
     items = sorted(items, reverse=True)
     print(_('Found links:'))
     for i in items:
-        print('  '+i[0])
+        print(f'  {i[0]}')
 
     url = items[0][0]
     ver_inet = items[0][REGEX_GROUP_VER]

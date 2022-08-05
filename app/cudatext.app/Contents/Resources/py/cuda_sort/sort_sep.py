@@ -6,7 +6,7 @@ _   = get_translation(__file__)  # I18N
 def _sort(s, sep_k, sep_v):
 
     if sep_k:
-        if not sep_k in s:
+        if sep_k not in s:
             return s
         key, val = s.split(sep_k, 1)
         vals = sorted(val.split(sep_v))

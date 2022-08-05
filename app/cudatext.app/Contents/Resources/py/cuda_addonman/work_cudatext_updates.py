@@ -42,12 +42,12 @@ def versions_ordered(s1, s2):
 def check_cudatext():
 
     fn = os.path.join(tempfile.gettempdir(), 'cudatext_download.html')
-    app.msg_status('Downloading: '+DOWNLOAD_PAGE, True)
+    app.msg_status(f'Downloading: {DOWNLOAD_PAGE}', True)
     get_url(DOWNLOAD_PAGE, fn, True)
     app.msg_status('')
 
     if not os.path.isfile(fn):
-        app.msg_status('Cannot download: '+DOWNLOAD_PAGE)
+        app.msg_status(f'Cannot download: {DOWNLOAD_PAGE}')
         return
 
     text = open(fn, encoding='utf8').read()
@@ -59,7 +59,7 @@ def check_cudatext():
     items = sorted(items, key=lambda i:i[REGEX_GROUP_VER], reverse=True)
     print('Found links:')
     for i in items:
-        print('  '+i[0])
+        print(f'  {i[0]}')
 
     url = items[0][0]
     ver_inet = items[0][REGEX_GROUP_VER]

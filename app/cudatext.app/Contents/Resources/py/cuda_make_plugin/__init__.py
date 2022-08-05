@@ -53,9 +53,8 @@ class Command:
             #events
             for item in event_list:
                 par = 'self, ed_self'
-                par_add = EVENTS_ADD_PARAMS.get(item, '')
-                if par_add:
-                    par+=', '+par_add
+                if par_add := EVENTS_ADD_PARAMS.get(item, ''):
+                    par += f', {par_add}'
                 f.write('    def %s(%s):\n'%(item, par))
                 f.write('        pass\n')
 
@@ -64,10 +63,10 @@ class Command:
         fn_inf = os.path.join(dir_plugin, 'install.inf')
         with open(fn_inf, 'w') as f:
             f.write('[info]\n')
-            f.write('title='+s_caption+'\n')
+            f.write(f'title={s_caption}' + '\n')
             f.write('desc='+_('(Fill the description)\n'))
             f.write('type=cudatext-plugin\n')
-            f.write('subdir='+s_module+'\n')
+            f.write(f'subdir={s_module}' + '\n')
             f.write('homepage='+_('(Fill the GitHub repo URL)\n'))
             f.write('\n')
 
@@ -81,8 +80,8 @@ class Command:
                 for (n, item) in enumerate(cmd_list):
                     f.write('[item%d]\n'%(n+2)) #start at [item2]
                     f.write('section=commands\n')
-                    f.write('caption='+item[0]+'\n')
-                    f.write('method='+item[1]+'\n')
+                    f.write(f'caption={item[0]}' + '\n')
+                    f.write(f'method={item[1]}' + '\n')
                     if item[2]:
                         f.write('menu=0\n')
                     f.write('\n')
@@ -90,7 +89,7 @@ class Command:
             if with_config:
                 f.write('[item100]\n')
                 f.write('section=commands\n')
-                f.write('caption='+s_caption+'\\Config\n')
+                f.write(f'caption={s_caption}' + '\\Config\n')
                 f.write('method=config\n')
                 f.write('menu=o\n')
                 f.write('\n')

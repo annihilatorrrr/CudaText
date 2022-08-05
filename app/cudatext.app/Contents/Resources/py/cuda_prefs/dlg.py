@@ -130,8 +130,7 @@ def get_tree_path_names(h_tree, item_id, l=None):
     prop = tree_proc(h_tree, TREE_ITEM_GET_PROPS, id_item=item_id)
     l.append(prop['text'])
 
-    parent_id = prop.get('parent')
-    if parent_id:
+    if parent_id := prop.get('parent'):
         get_tree_path_names(h_tree, parent_id, l)
     return l
 
@@ -196,8 +195,11 @@ def map_option_value(opt, val=None, caption=None):
         if caption  is not None: return caption
 
     else:
-        raise OptionMapValueError('Unsupported option format: {}'.format((opt["opt"], opt["frm"])))
-    raise OptionMapValueError('Couldn"t find: {}, {}\n + {}'.format(val, caption, opt))
+        raise OptionMapValueError(
+            f'Unsupported option format: {(opt["opt"], opt["frm"])}'
+        )
+
+    raise OptionMapValueError(f'Couldn"t find: {val}, {caption}\n + {opt}')
 
 
 def json_update(path, key, val):
@@ -220,14 +222,14 @@ def json_update(path, key, val):
 
 def format_opt_change(ch):
     scope_str = ch.scope
-    if   ch.scope=='u': scope_str = ui_column(COL_VAL_USER)
-    elif ch.scope=='l': scope_str = ui_column(COL_VAL_LEX) +': '+str(ch.lexer)
-    elif ch.scope=='f': scope_str = ui_column(COL_VAL_FILE)+': '+os.path.basename(ed.get_filename())
+    if ch.scope=='u': scope_str = ui_column(COL_VAL_USER)
+    elif ch.scope=='l':
+        scope_str = f'{ui_column(COL_VAL_LEX)}: {str(ch.lexer)}'
+    elif ch.scope=='f':
+        scope_str = f'{ui_column(COL_VAL_FILE)}: {os.path.basename(ed.get_filename())}'
 
-    if ch.value is None:    val_str = _('reset')
-    else:                   val_str = '{} -> {}'.format(ch.old_value, ch.value)
-
-    return '{} [{}] {}'.format(ch.name, scope_str, val_str)
+    val_str = _('reset') if ch.value is None else f'{ch.old_value} -> {ch.value}'
+    return f'{ch.name} [{scope_str}] {val_str}'
 
 def ui_column(colname):
     return UI_COLUMNS.get(colname, colname)
@@ -262,7 +264,7 @@ class DialogMK2:
         # gather not-available scopes
         self.hidden_scopes = [] # 'l' and/or 'f'
         if (how  and  how.get('hide_fil')  or  how.get('hide_lex_fil')  or  how.get('only_for_ul')) \
-                                                                            or not ed.get_filename():
+                                                                                or not ed.get_filename():
             self.hidden_scopes.append('f')
         if how.get('hide_lex_fil')  or  not ed.get_prop(PROP_LEXER_FILE):
             self.hidden_scopes.append('l')
@@ -298,9 +300,7 @@ class DialogMK2:
 
     @property
     def filter_val(self):
-        if self.h:
-            return self._filter_ed.get_text_all()
-        return ''
+        return self._filter_ed.get_text_all() if self.h else ''
     @filter_val.setter
     def filter_val(self, value): #SKIP
         if self.h:
@@ -325,10 +325,7 @@ class DialogMK2:
             captions.append(caption)
 
             # width: to negative percentages for listbox -- except '!' <- in px
-            if isinstance(w, int):
-                w = -round(w/_total_w*100)
-            else:
-                w = int(w[:-2]) # "100px" => 100
+            w = -round(w/_total_w*100) if isinstance(w, int) else int(w[:-2])
             widths.append(w)
 
         return captions,widths
@@ -370,8 +367,7 @@ class DialogMK2:
             with open(PLING_HISTORY_JSON, 'r', encoding='utf-8') as f:
                 j_all = json.load(f)
 
-            j = j_all.get(PLING_KEY)
-            if j:
+            if j := j_all.get(PLING_KEY):
                 _state_keys = {
                     STATE_KEY_TREE_W,
                     STATE_KEY_DESCR_MEMO_H,
@@ -385,46 +381,40 @@ class DialogMK2:
                 # if subset - overwrite general values with subset's
                 _subsets = j.get('subsets')
                 if self.subset  and  _subsets:
-                    self._state.update(_subsets.get(self.subset, {}))
+                    self._state |= _subsets.get(self.subset, {})
 
 
-                # filter history
-                _filt_hist = j.get(STATE_KEY_FILTER_HIST)
-                if _filt_hist:
+                if _filt_hist := j.get(STATE_KEY_FILTER_HIST):
                     filter_history.clear()
                     filter_history.extend(_filt_hist)
 
-                # list columns
-                _col_cfg = j.get(STATE_KEY_COL_CFG)
-                if _col_cfg:
+                if _col_cfg := j.get(STATE_KEY_COL_CFG):
                     import re
 
                     # check if only integers and str (~"100px")
                     for i in range(len(_col_cfg)):
                         item = _col_cfg[i]
                         colname,w = item
-                        if not isinstance(w, int)  and  not (isinstance(w, str)
-                                                                and re.match('^\d+px$', w)):
+                        if not isinstance(w, int) and (
+                            not isinstance(w, str) or not re.match('^\d+px$', w)
+                        ):
                             print(_('NOTE: {}: invalid column width format: {}')
                                         .format(self.title, item))
                             _col_cfg[i] = (colname,100)
 
                     opt_col_cfg.clear()
                     opt_col_cfg.extend(_col_cfg)
-                pass;       LOG and print(' --- Loaded state: '+json.dumps(j, indent=4))
+                LOG and print(f' --- Loaded state: {json.dumps(j, indent=4)}')
 
-            # no history - load from opted plugin
-            else:
-                j_opted = j_all.get('cd_opts_dlg', {}).get('dlg')
-                if j_opted:
-                    opted_state = {
-                        STATE_KEY_DESCR_MEMO_H: j_opted.get("df.cmnt_heght"),
-                        STATE_KEY_SEL_OPT:      j_opted.get("df.cur_op"),
-                    }
-                    self._state = {k:v  for k,v in opted_state.items()  if v is not None}
+            elif j_opted := j_all.get('cd_opts_dlg', {}).get('dlg'):
+                opted_state = {
+                    STATE_KEY_DESCR_MEMO_H: j_opted.get("df.cmnt_heght"),
+                    STATE_KEY_SEL_OPT:      j_opted.get("df.cur_op"),
+                }
+                self._state = {k:v  for k,v in opted_state.items()  if v is not None}
 
-                    filter_history.clear()
-                    filter_history.extend(j_opted.get('df.h.cond', []))
+                filter_history.clear()
+                filter_history.extend(j_opted.get('df.h.cond', []))
 
 
     def _save_dlg_cfg(self):
@@ -437,13 +427,20 @@ class DialogMK2:
         json_update(FORMS_CFG_JSON,  key=self.title,  val=j_form)
 
         # states
-        j = {}
-        j[STATE_KEY_TREE_W] = dlg_proc(self.h, DLG_CTL_PROP_GET, name='category_tree')['w']
+        j = {
+            STATE_KEY_TREE_W: dlg_proc(
+                self.h, DLG_CTL_PROP_GET, name='category_tree'
+            )['w']
+        }
+
         j[STATE_KEY_DESCR_MEMO_H] = dlg_proc(self.h, DLG_CTL_PROP_GET, name='panel_value')['h']
         j[STATE_KEY_FILTER_STR] = self.filter_val
         j[STATE_KEY_FILTER_HIST] = filter_history
         j[STATE_KEY_FILTER_VISIBLE] = dlg_proc(self.h, DLG_CTL_PROP_GET, name='panel_filter')['vis']
-        j[STATE_KEY_SORT_COL] = self.current_sort if not self.sort_reverse else '-'+self.current_sort
+        j[STATE_KEY_SORT_COL] = (
+            f'-{self.current_sort}' if self.sort_reverse else self.current_sort
+        )
+
         j[STATE_KEY_SEL_OPT] = self._cur_opt_name
 
         # save some options separately -- 3rd party options: move from `j` to `j/subsets/<subset>`
@@ -468,20 +465,17 @@ class DialogMK2:
             res = dlg_input_ex(len(colnames), caption, *flat_columns)
             if not res:
                 break
-            else: # have result -> validate
-                for i in range(len(colnames)):
-                    item = res[i]
-                    if item.isdecimal():
-                        res[i] = int(item)
-                    elif (item.endswith('px') and item[:-2].isdecimal()):
-                        pass
-                    else: # error
-                        widths = res
-                        colnames[i] = _colnames[i] + _(' (Error!)')
-                        break
-
-                else: # all is well - stop `While`
+            for i in range(len(colnames)):
+                item = res[i]
+                if item.isdecimal():
+                    res[i] = int(item)
+                elif not item.endswith('px') or not item[:-2].isdecimal(): # error
+                    widths = res
+                    colnames[i] = _colnames[i] + _(' (Error!)')
                     break
+
+            else: # all is well - stop `While`
+                break
 
         if res:
             new_cfg = list(zip(_colnames, res))
@@ -498,7 +492,7 @@ class DialogMK2:
                 opt_col_cfg = _start_cfg  # revert changes
 
                 msg = _('failed to apply new columns config: {}. {}').format(new_cfg, ex)
-                print('NOTE: {}: {}'.format(self.title, msg))
+                print(f'NOTE: {self.title}: {msg}')
 
 
 
@@ -827,11 +821,11 @@ class DialogMK2:
         scopes = [ui_column(COL_VAL_USER)]
         lex = ed.get_prop(PROP_LEXER_FILE)
         if lex  and  'l' not in self.hidden_scopes:
-            scopes.append(ui_column(COL_VAL_LEX)+': '+lex)
+            scopes.append(f'{ui_column(COL_VAL_LEX)}: {lex}')
             self._scope_captions['l'] = scopes[-1]
         if ed.get_filename()  and  'f' not in self.hidden_scopes:
             filename = os.path.split(ed.get_filename())[1]
-            scopes.append(ui_column(COL_VAL_FILE)+': '+filename)
+            scopes.append(f'{ui_column(COL_VAL_FILE)}: {filename}')
             self._scope_captions['f'] = scopes[-1]
         self.scope_ed = Editor(h_scope_ed)
         self.scope_ed.set_prop(PROP_RO, True)
@@ -876,14 +870,12 @@ class DialogMK2:
 
         listbox_proc(self._h_list, LISTBOX_DELETE_ALL)
 
-        _addedn = 0
         _max_seps = 0
         for row in zip(*columns_items):
             row_txt = LIST_SEP.join(row)
             _max_seps = row_txt.count(LIST_SEP)
 
             listbox_proc(self._h_list, LISTBOX_ADD, index=-1, text=row_txt)
-            _addedn += 1
         _rows = listbox_proc(self._h_list, LISTBOX_GET_COUNT)
 
         # select  current option
@@ -910,7 +902,7 @@ class DialogMK2:
         header_icon_cfg = []
         if self.current_sort and self.current_sort in column_captions:
             sort_col_ind = column_captions.index(self.current_sort)
-            _order_name = 'asc'  if not self.sort_reverse else  'desc'
+            _order_name = 'desc' if self.sort_reverse else 'asc'
             _icon_ind = DialogMK2._lb_icon_inds[_order_name]
             header_icon_cfg = [-1]*sort_col_ind + [_icon_ind] # ~[-1, -1, -1, ind]
         listbox_proc(self._h_list, LISTBOX_SET_HEADER_IMAGEINDEXES, text=header_icon_cfg)
@@ -932,7 +924,7 @@ class DialogMK2:
         self.filter_val = filter_str
 
         opts = self.get_filtered_opts()
-        pass;       LOG and print(' __ set_filter: opts len: {}'.format(len(opts)))
+        LOG and print(f' __ set_filter: opts len: {len(opts)}')
         self.update_list(opts)
 
         # history
@@ -951,7 +943,7 @@ class DialogMK2:
 
 
     def set_sort(self, sort_name):
-        pass;       LOG and print(' setting sort: {}'.format(sort_name))
+        LOG and print(f' setting sort: {sort_name}')
 
         if self.current_sort == sort_name: # switch order
             self.sort_reverse = not self.sort_reverse
@@ -962,7 +954,7 @@ class DialogMK2:
 
         # if not present in map -- special value - send as is
         opts = self.get_filtered_opts()
-        pass;       LOG and print(' __ set_sort: opts len: {}'.format(len(opts)))
+        LOG and print(f' __ set_sort: opts len: {len(opts)}')
         self.update_list(opts)
 
 
@@ -978,13 +970,8 @@ class DialogMK2:
                 del self._opt_changes[i]
                 break
 
-        if val is not None:  ### setting value
-            if val == _old_val: # no change - ignore
-                return
-        else:  ### removing value
-            if _old_val is None: # no change - ignore
-                return
-
+        if val is not None and val == _old_val or val is None and _old_val is None: # no change - ignore
+            return
         # if resetting value -- ask confirmation
         scam = app_proc(PROC_GET_KEYSTATE, '')
         if scam != 'c'  and  self.scope != 'f'  and  val is None:
@@ -997,7 +984,7 @@ class DialogMK2:
 
         lex = ed.get_prop(PROP_LEXER_FILE)  if scope == 'l' else None
         opt_change = OptChange(name,  scope,  val,  lexer=lex,  old_value=_old_val)
-        pass;       LOG and print('NOTE: new option change: '+str(opt_change))
+        LOG and print(f'NOTE: new option change: {str(opt_change)}')
         msg_status(_('Option: ') + format_opt_change(opt_change))
         self._opt_changes.append(opt_change)
 
@@ -1012,8 +999,7 @@ class DialogMK2:
             d_['item_id'] = item_id
             n += 1
 
-            items = d_.get('kids')
-            if items:
+            if items := d_.get('kids'):
                 n += self._fill_tree(items, parent=item_id)
         return n
 
@@ -1023,10 +1009,10 @@ class DialogMK2:
         """
         ed_name = self.val_eds.get_name(id_ctl)
         prop_type = self._cur_opt['frm']
-        pass;       LOG and print(' + ed name: {} [{}]'.format(ed_name, prop_type))
+        LOG and print(f' + ed name: {ed_name} [{prop_type}]')
 
         if ed_name == ValueEds.WGT_NAME__EDIT:       # str, int, float, -hotk  + ###
-            if prop_type == '#rgb'  or  prop_type == '#rgb-e':
+            if prop_type in ['#rgb', '#rgb-e']:
                 self._update_rgb_edit()
 
             self.toggle_mod_indicator(by_timer=True)
@@ -1043,7 +1029,7 @@ class DialogMK2:
             val = self.val_eds.val_combo.get_text_all()
             # only accept values from combo-items
             if val not in self.val_eds.val_combo.get_prop(PROP_COMBO_ITEMS):
-                pass;       LOG and print('NOTE: val not in combo: {}'.format(val))
+                LOG and print(f'NOTE: val not in combo: {val}')
                 return
 
             val = map_option_value(self._cur_opt, caption=val)
@@ -1053,15 +1039,14 @@ class DialogMK2:
 
         elif ed_name == ValueEds.WGT_NAME__BTN_EDIT: # edit btn: hotk, color, json, file ###
             val = self._dlg_value(prop_type)
-            if val is not None:
-                with ignore_edit(self.h, self.val_eds.val_edit):
-                    self.val_eds.val_edit.set_text_all(str(val))
-
-                if prop_type in {'#rgb', '#rgb-e'}:
-                    self._update_rgb_edit()
-            else: # canceled dialog
+            if val is None:
                 return
 
+            with ignore_edit(self.h, self.val_eds.val_edit):
+                self.val_eds.val_edit.set_text_all(str(val))
+
+            if prop_type in {'#rgb', '#rgb-e'}:
+                self._update_rgb_edit()
         self.toggle_mod_indicator(show=True)
         self.add_opt_change(self._cur_opt_name, self.scope, val)
 

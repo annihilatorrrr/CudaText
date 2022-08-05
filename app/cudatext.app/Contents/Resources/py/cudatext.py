@@ -985,7 +985,7 @@ def app_exe_version():
     return EXE_VER
 
 def app_api_version():
-    return '1.0.'+str(API)
+    return f'1.0.{str(API)}'
 
 def app_path(id):
     return ct.app_path(id)
@@ -1065,10 +1065,7 @@ def _dlg_custom_dict(res, count):
     """Parse dlg_custom str result to dict"""
     clicked, vals = res
     vals = vals.splitlines()
-    res = {}
-    #res[i]
-    for i in range(count):
-        res[i] = vals[i]
+    res = {i: vals[i] for i in range(count)}
     #res['clicked']
     res['clicked'] = clicked
     #res['focused']
@@ -1085,30 +1082,29 @@ def dlg_custom(title, size_x, size_y, text, focused=-1, get_dict=False):
     res = ct.dlg_custom(title, size_x, size_y, text, focused)
     if res is None:
         return
-    if not get_dict:
-        return res
-    else:
-        return _dlg_custom_dict(res, count=len(text.splitlines()) )
+    return (
+        _dlg_custom_dict(res, count=len(text.splitlines()))
+        if get_dict
+        else res
+    )
 
 def file_open(name, group=-1, options=''):
-    if isinstance(name, (list, tuple)):
-        if len(name)<2:
-            raise ValueError('Length of "name" param must be >=2')
-        if type(name[0]) is not str:
-            raise ValueError('Param name[0] must be str')
-        if type(name[1]) is not str:
-            raise ValueError('Param name[1] must be str')
-        return ct.file_open(name[0], name[1], group, options)
-    else:
+    if not isinstance(name, (list, tuple)):
         return ct.file_open(name, '', group, options)
+    if len(name)<2:
+        raise ValueError('Length of "name" param must be >=2')
+    if type(name[0]) is not str:
+        raise ValueError('Param name[0] must be str')
+    if type(name[1]) is not str:
+        raise ValueError('Param name[1] must be str')
+    return ct.file_open(name[0], name[1], group, options)
 
 def ed_handles():
     r0, r1 = ct.ed_handles()
     return range(r0, r1+1)
 
 def ed_group(n):
-    h = ct.ed_group(n)
-    if h:
+    if h := ct.ed_group(n):
         return Editor(h)
 
 def ini_read(filename, section, key, value):
@@ -1140,14 +1136,16 @@ def menu_proc(id_menu, id_action, command="", caption="", index=-1, hotkey="", t
     if callable(command):
         sid_callback = str(command)
         _live[sid_callback] = command
-        command = 'module={};func=_menu_proc_callback_proxy;info="{}";'.format(__name__, sid_callback)
+        command = f'module={__name__};func=_menu_proc_callback_proxy;info="{sid_callback}";'
+
     return ct.menu_proc(str(id_menu), id_action, to_str(command), caption, index, hotkey, tag)
 
 def button_proc(id_button, id_action, value=''):
     if callable(value):
         sid_callback = str(value)
         _live[sid_callback] = value
-        value = 'module={};func=_menu_proc_callback_proxy;info="{}";'.format(__name__, sid_callback)
+        value = f'module={__name__};func=_menu_proc_callback_proxy;info="{sid_callback}";'
+
     return ct.button_proc(id_button, id_action, to_str(value))
 
 def listbox_proc(id_listbox, id_action, index=0, text="", tag=0):
@@ -1157,7 +1155,8 @@ def toolbar_proc(id_toolbar, id_action, text="", text2="", command=0, index=-1, 
     if callable(command):
         sid_callback = str(command)
         _live[sid_callback] = command
-        command = 'module={};func=_menu_proc_callback_proxy;info="{}";'.format(__name__, sid_callback)
+        command = f'module={__name__};func=_menu_proc_callback_proxy;info="{sid_callback}";'
+
     return ct.toolbar_proc(str(id_toolbar), id_action, text, text2, str(command), index, index2)
 
 def statusbar_proc(id_statusbar, id_action, index=-1, tag=0, value=""):
@@ -1174,13 +1173,14 @@ def timer_proc(id, callback, interval, tag=''):
     if callable(callback):
         sid_callback = str(callback)
         _live[sid_callback] = callback
-        callback = 'module={};func=_timer_proc_callback_proxy;info="{}";'.format(__name__, sid_callback)
+        callback = f'module={__name__};func=_timer_proc_callback_proxy;info="{sid_callback}";'
+
     return ct.timer_proc(id, callback, interval, tag)
 
 
 def to_str(v, escape=False):
     def _pair(a, b):
-        return to_str(a, True) + ':' + to_str(b, True)
+        return f'{to_str(a, True)}:{to_str(b, True)}'
 
     if v is None:
         return ''
@@ -1203,9 +1203,7 @@ def to_str(v, escape=False):
         #props must go last: val
         if k in ('p', 'w_min', 'w_max', 'h_min', 'h_max'):
             return 0
-        if k in ('val', 'columns'):
-            return 2
-        return 1
+        return 2 if k in ('val', 'columns') else 1
 
     if isinstance(v, dict):
         res = chr(1).join(
@@ -1237,16 +1235,18 @@ def _dlg_proc_callback_proxy(id_dlg, id_ctl, data='', info=''):
 def _alter_live(id_dialog, prop, callback_name):
     callback_param = prop[callback_name]
     if callable(callback_param):
-        sid_callback = '{}:{}'.format(id_dialog, callback_param)
+        sid_callback = f'{id_dialog}:{callback_param}'
         _live[sid_callback] = callback_param
-        prop[callback_name] = 'module={};func=_dlg_proc_callback_proxy;info="{}";'.format(__name__, sid_callback)
+        prop[
+            callback_name
+        ] = f'module={__name__};func=_dlg_proc_callback_proxy;info="{sid_callback}";'
 
 def dlg_proc(id_dialog, id_action, prop='', index=-1, index2=-1, name=''):
     #print('#dlg_proc id_action='+str(id_action)+' prop='+repr(prop))
 
     #cleanup storage of live callbacks
     if id_action == DLG_FREE:
-        for k in [k for k in _live if k.startswith(str(id_dialog)+':')]:
+        for k in [k for k in _live if k.startswith(f'{str(id_dialog)}:')]:
             _live.pop(k)
 
     #support live callbacks by replacing them to str
@@ -1376,7 +1376,7 @@ class Editor:
             return ct.ed_set_prop(self.h, id, value)
         key,val = value.split(':', 1) if ':' in value else ('_', value)
         js_s = ct.ed_get_prop(self.h, PROP_TAG, '')
-        js_s = js_s if js_s else '{}'
+        js_s = js_s or '{}'
         import json
         js = json.loads(js_s)
         js[key] = val
@@ -1413,10 +1413,7 @@ class Editor:
              ):
 
         def f(x):
-            if isinstance(x, int):
-                return str(x)
-            else:
-                return ','.join(map(str, x))
+            return str(x) if isinstance(x, int) else ','.join(map(str, x))
 
         column = 1 if show_on_map is True else -1 if show_on_map is False else show_on_map
 
@@ -1453,13 +1450,7 @@ class Editor:
         return ct.ed_micromap(self.h, id, param1, param2, param3)
 
     def __str__(self):
-        return '<Editor h:{} id:{} title:"{}" gr:{} tab:{}>'.format(
-            self.h,
-            self.get_prop(PROP_TAB_ID),
-            self.get_prop(PROP_TAB_TITLE),
-            self.get_prop(PROP_INDEX_GROUP),
-            self.get_prop(PROP_INDEX_TAB)
-            )
+        return f'<Editor h:{self.h} id:{self.get_prop(PROP_TAB_ID)} title:"{self.get_prop(PROP_TAB_TITLE)}" gr:{self.get_prop(PROP_INDEX_GROUP)} tab:{self.get_prop(PROP_INDEX_TAB)}>'
 
     def __repr__(self):
         return self.__str__()

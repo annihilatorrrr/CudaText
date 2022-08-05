@@ -71,11 +71,7 @@ class Command:
 
         button_proc(self.h_btn, BTN_SET_ITEMS, '\n'.join(self.folders_))
 
-        if self.folder in self.folders_:
-            index = self.folders_.index(self.folder)
-        else:
-            index = 0
-
+        index = self.folders_.index(self.folder) if self.folder in self.folders_ else 0
         button_proc(self.h_btn, BTN_SET_ITEMINDEX, index)
 
 
@@ -84,12 +80,10 @@ class Command:
         r = []
         lines = open_read(fn).splitlines()
         if fn.endswith('.synw-snippet'):
-            d = parse_synwrite_snip(lines)
-            if d:
+            if d := parse_synwrite_snip(lines):
                 r.append(d)
         else:
-            for s in lines:
-                r.append(parse_usual_snip(s))
+            r.extend(parse_usual_snip(s) for s in lines)
         return r
 
 
