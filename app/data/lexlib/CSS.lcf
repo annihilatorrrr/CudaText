@@ -29,7 +29,7 @@ object SyntAnal6: TLibSyntAnalyzer
     item
       DisplayName = 'Value'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clPurple
+      Font.Color = clBlack
       Font.Height = -13
       Font.Name = 'Courier New'
       Font.Style = []
@@ -153,7 +153,7 @@ object SyntAnal6: TLibSyntAnalyzer
     item
       DisplayName = 'Name#'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clAqua
+      Font.Color = clPurple
       Font.Height = -13
       Font.Name = 'Courier New'
       Font.Style = []
@@ -218,6 +218,7 @@ object SyntAnal6: TLibSyntAnalyzer
     item
       DisplayName = 'Prop others'
       StyleName = 'Prop correct'
+      BlockName = '{'
       TokenType = 12
       Expression = '[\w\-]+(?=\x20*\:)'
       ColumnFrom = 0
