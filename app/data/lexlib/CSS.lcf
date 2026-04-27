@@ -35,6 +35,22 @@ object SyntAnal6: TLibSyntAnalyzer
       BorderColorBottom = clRed
     end
     item
+      DisplayName = 'Name.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clMaroon
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Style = []
+    end
+    item
+      DisplayName = 'Name#'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clPurple
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Style = []
+    end
+    item
       DisplayName = 'Symbol'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clMaroon
@@ -49,16 +65,6 @@ object SyntAnal6: TLibSyntAnalyzer
       Font.Height = -13
       Font.Name = 'Courier New'
       Font.Style = [fsItalic]
-    end
-    item
-      DisplayName = 'Current block BG'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Courier New'
-      Font.Style = []
-      BgColor = 16053492
-      FormatType = ftBackGround
     end
     item
       DisplayName = 'Color'
@@ -85,7 +91,7 @@ object SyntAnal6: TLibSyntAnalyzer
       Font.Style = [fsBold]
     end
     item
-      DisplayName = 'Style suffix'
+      DisplayName = 'Pseudo'
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clOlive
       Font.Height = -13
@@ -143,20 +149,14 @@ object SyntAnal6: TLibSyntAnalyzer
       Font.Style = []
     end
     item
-      DisplayName = 'Name.'
+      DisplayName = 'Current block BG'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clMaroon
+      Font.Color = clWindowText
       Font.Height = -13
       Font.Name = 'Courier New'
       Font.Style = []
-    end
-    item
-      DisplayName = 'Name#'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clPurple
-      Font.Height = -13
-      Font.Name = 'Courier New'
-      Font.Style = []
+      BgColor = 16053492
+      FormatType = ftBackGround
     end>
   TokenRules = <
     item
@@ -201,7 +201,7 @@ object SyntAnal6: TLibSyntAnalyzer
     item
       DisplayName = 'Prop user'
       StyleName = 'Prop user'
-      TokenType = 9
+      TokenType = 12
       Expression = '\-\-[a-z][\w\-]*'
       ColumnFrom = 0
       ColumnTo = 0
@@ -216,20 +216,40 @@ object SyntAnal6: TLibSyntAnalyzer
       ColumnTo = 0
     end
     item
-      DisplayName = 'Prop others'
+      DisplayName = 'Prop out of {}'
       StyleName = 'Prop correct'
       TokenType = 12
-      Expression = '[\w\-]+(?=\x20*\:\x20)'
+      Expression = '[\w\-]+(?=\x20*\:)'
       ColumnFrom = 0
       ColumnTo = 0
     end
     item
-      DisplayName = 'Style suffix'
-      StyleName = 'Style suffix'
-      BlockName = '{'
-      NotParent = True
-      TokenType = 16
-      Expression = ':{1,2}[a-z\-][\w\-]*'
+      DisplayName = 'Pseudo element'
+      StyleName = 'Pseudo'
+      TokenType = 13
+      Expression = 
+        '(?-i)::(after|backdrop|before|cue|details-content|file-selector-' +
+        'button|first-letter|first-line|grammar-error|highlight|marker|pa' +
+        'rt|placeholder|search|selection|slotted|spelling-error|target-te' +
+        'xt|view-transition|view-transition-group|view-transition-image-p' +
+        'air|view-transition-new|view-transition-old)\b'
+      ColumnFrom = 0
+      ColumnTo = 0
+    end
+    item
+      DisplayName = 'Pseudo class'
+      StyleName = 'Pseudo'
+      TokenType = 13
+      Expression = 
+        '(?-i):(active|any-link|autofill|blank|checked|current|default|de' +
+        'fined|dir|disabled|empty|enabled|first-child|first-of-type|first' +
+        '|focus-visible|focus-within|focus|future|has|host|host-context|h' +
+        'over|in-range|indeterminate|invalid|is|lang|last-child|last-of-t' +
+        'ype|left|link|local-link|not|nth-child|nth-last-child|nth-last-o' +
+        'f-type|nth-of-type|only-child|only-of-type|optional|out-of-range' +
+        '|past|paused|placeholder-shown|playing|read-only|read-write|requ' +
+        'ired|right|root|scope|target-within|target|user-invalid|valid|vi' +
+        'sited|where)\b'
       ColumnFrom = 0
       ColumnTo = 0
     end
@@ -302,7 +322,7 @@ object SyntAnal6: TLibSyntAnalyzer
     end
     item
       DisplayName = 'Important'
-      StyleName = 'Id'
+      StyleName = 'Std function'
       TokenType = 2
       Expression = '!important\b'
       ColumnFrom = 0
@@ -2615,7 +2635,7 @@ object SyntAnal6: TLibSyntAnalyzer
   SampleText.Strings = (
     '/* Comment */'
     '<?php echo '#39'test'#39' ?>'
-    '#name, .name:suffix, pre { '
+    '#name, .name::after, pre { '
     '  font-size: 10em + 2.em;'
     '  --my-var: -10.2e+2; /* custom prop; float */'
     '  background: url("../img.gif") no-repeat;'
@@ -2660,13 +2680,13 @@ object SyntAnal6: TLibSyntAnalyzer
     'Value unit'
     'Media special'
     'Prop others'
+    'Pseudo'
     '(none)'
-    '(none)'
-    'Media keyword'
-    'Suffix')
+    'Media keyword')
   Extentions = 'css'
   LexerName = 'CSS'
   Notes.Strings = (
     'Alexey Torgashin (CudaText)')
+  RestartFromLineStart = True
   Charset = DEFAULT_CHARSET
 end
