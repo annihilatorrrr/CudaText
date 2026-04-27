@@ -1,9 +1,17 @@
 object SyntAnal6: TLibSyntAnalyzer
   Formats = <
     item
-      DisplayName = 'Style'
+      DisplayName = 'Id'
       Font.Charset = DEFAULT_CHARSET
-      Font.Color = clNavy
+      Font.Color = clBlack
+      Font.Height = -13
+      Font.Name = 'Courier New'
+      Font.Style = []
+    end
+    item
+      DisplayName = 'HTML tag'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = 16744576
       Font.Height = -13
       Font.Name = 'Courier New'
       Font.Style = []
@@ -25,14 +33,6 @@ object SyntAnal6: TLibSyntAnalyzer
       Font.Style = []
       BorderTypeBottom = blWavyLine
       BorderColorBottom = clRed
-    end
-    item
-      DisplayName = 'Value'
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clBlack
-      Font.Height = -13
-      Font.Name = 'Courier New'
-      Font.Style = []
     end
     item
       DisplayName = 'Symbol'
@@ -219,7 +219,7 @@ object SyntAnal6: TLibSyntAnalyzer
       DisplayName = 'Prop others'
       StyleName = 'Prop correct'
       TokenType = 12
-      Expression = '[\w\-]+(?=\x20*\:)'
+      Expression = '[\w\-]+(?=\x20*\:\x20)'
       ColumnFrom = 0
       ColumnTo = 0
     end
@@ -280,15 +280,7 @@ object SyntAnal6: TLibSyntAnalyzer
       DisplayName = 'Value unit'
       StyleName = 'Value unit incorrect'
       TokenType = 10
-      Expression = '(?<=\b[\d\.]+)[a-z%]+\b'
-      ColumnFrom = 0
-      ColumnTo = 0
-    end
-    item
-      DisplayName = 'Value'
-      StyleName = 'Value'
-      TokenType = 14
-      Expression = '\w[\w\-]*'
+      Expression = '(?<=\b[\d\.]+)[a-z]+\b'
       ColumnFrom = 0
       ColumnTo = 0
     end
@@ -302,7 +294,7 @@ object SyntAnal6: TLibSyntAnalyzer
     end
     item
       DisplayName = 'Name'
-      StyleName = 'Style'
+      StyleName = 'Id'
       TokenType = 2
       Expression = '\-[\w\-]+|[a-z](\\.|[\w\-])*'
       ColumnFrom = 0
@@ -310,8 +302,8 @@ object SyntAnal6: TLibSyntAnalyzer
     end
     item
       DisplayName = 'Value !important'
-      StyleName = 'Value'
-      TokenType = 14
+      StyleName = 'Id'
+      TokenType = 2
       Expression = '!important\b'
       ColumnFrom = 0
       ColumnTo = 0
@@ -341,6 +333,132 @@ object SyntAnal6: TLibSyntAnalyzer
       ColumnTo = 0
     end>
   BlockRules = <
+    item
+      DisplayName = 'Std tags'
+      StyleName = 'HTML tag'
+      BlockType = btTagDetect
+      ConditionList = <
+        item
+          TagList.Strings = (
+            'a'
+            'abbr'
+            'address'
+            'area'
+            'article'
+            'aside'
+            'audio'
+            'b'
+            'base'
+            'bdi'
+            'bdo'
+            'blockquote'
+            'body'
+            'br'
+            'button'
+            'canvas'
+            'caption'
+            'cite'
+            'code'
+            'col'
+            'colgroup'
+            'data'
+            'datalist'
+            'dd'
+            'del'
+            'details'
+            'dfn'
+            'dialog'
+            'div'
+            'dl'
+            'dt'
+            'em'
+            'embed'
+            'fieldset'
+            'figcaption'
+            'figure'
+            'footer'
+            'form'
+            'h1'
+            'h2'
+            'h3'
+            'h4'
+            'h5'
+            'h6'
+            'head'
+            'header'
+            'hgroup'
+            'hr'
+            'html'
+            'i'
+            'iframe'
+            'img'
+            'input'
+            'ins'
+            'kbd'
+            'label'
+            'legend'
+            'li'
+            'link'
+            'main'
+            'map'
+            'mark'
+            'menu'
+            'meta'
+            'meter'
+            'nav'
+            'noscript'
+            'object'
+            'ol'
+            'optgroup'
+            'option'
+            'output'
+            'p'
+            'param'
+            'picture'
+            'pre'
+            'progress'
+            'q'
+            'rp'
+            'rt'
+            'ruby'
+            's'
+            'samp'
+            'script'
+            'search'
+            'section'
+            'select'
+            'slot'
+            'small'
+            'source'
+            'span'
+            'strong'
+            'style'
+            'sub'
+            'summary'
+            'sup'
+            'table'
+            'tbody'
+            'td'
+            'template'
+            'textarea'
+            'tfoot'
+            'th'
+            'thead'
+            'time'
+            'title'
+            'tr'
+            'track'
+            'u'
+            'ul'
+            'var'
+            'video'
+            'wbr')
+          TokenTypes = 4
+          IgnoreCase = True
+        end>
+      HighlightPos = cpAny
+      IgnoreAsParent = False
+    end
     item
       DisplayName = 'Id props'
       StyleName = 'Prop correct'
@@ -2379,7 +2497,7 @@ object SyntAnal6: TLibSyntAnalyzer
             'var'
             'variant'
             'view')
-          TokenTypes = 16384
+          TokenTypes = 4
         end>
       HighlightPos = cpAny
       IgnoreAsParent = False
@@ -2498,7 +2616,7 @@ object SyntAnal6: TLibSyntAnalyzer
   SampleText.Strings = (
     '/* Comment */'
     '<?php echo '#39'test'#39' ?>'
-    '.name, .name2:suffix { '
+    '#name, .name:suffix, pre { '
     '  font-size: 10em + 2.em;'
     '  --my-var: -10.2e+2; /* custom prop; float */'
     '  background: url("../img.gif") no-repeat;'
@@ -2507,8 +2625,6 @@ object SyntAnal6: TLibSyntAnalyzer
     '  -ms-zoom: 100%; '
     '  -ms-hmm: Olive+yellow;'
     '}'
-    ''
-    '#footer {color: #AA00BBee;}'
     ''
     
       '@media screen and (-ms-high-contrast: active), (-ms-high-contras' +
@@ -2546,18 +2662,12 @@ object SyntAnal6: TLibSyntAnalyzer
     'Media special'
     'Prop others'
     '(none)'
-    'Value'
+    '(none)'
     'Media keyword'
     'Suffix')
   Extentions = 'css'
   LexerName = 'CSS'
   Notes.Strings = (
-    'Alexey Torgashin (CudaText)'
-    
-      'Known vendor prefixes: http://peter.sh/experiments/vendor-prefix' +
-      'ed-css-property-overview/'
-    
-      'Atom lexer props: https://github.com/atom/language-css/blob/mast' +
-      'er/grammars/css.cson')
+    'Alexey Torgashin (CudaText)')
   Charset = DEFAULT_CHARSET
 end
