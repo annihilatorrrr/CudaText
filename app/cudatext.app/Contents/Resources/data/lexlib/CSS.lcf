@@ -288,7 +288,7 @@ object SyntAnal6: TLibSyntAnalyzer
       DisplayName = 'Media keyword'
       StyleName = 'Media'
       TokenType = 15
-      Expression = '\b(and|not|only|print|screen|all|speech)\b'
+      Expression = '\b(only|print|screen|all|speech)\b'
       ColumnFrom = 0
       ColumnTo = 0
     end
@@ -301,7 +301,7 @@ object SyntAnal6: TLibSyntAnalyzer
       ColumnTo = 0
     end
     item
-      DisplayName = 'Value !important'
+      DisplayName = 'Important'
       StyleName = 'Id'
       TokenType = 2
       Expression = '!important\b'
@@ -460,7 +460,7 @@ object SyntAnal6: TLibSyntAnalyzer
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Id props'
+      DisplayName = 'Props'
       StyleName = 'Prop correct'
       BlockType = btTagDetect
       ConditionList = <
@@ -1370,7 +1370,7 @@ object SyntAnal6: TLibSyntAnalyzer
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Id props deprecated'
+      DisplayName = 'Props deprecated'
       StyleName = 'Prop correct'
       BlockType = btTagDetect
       ConditionList = <
@@ -1622,7 +1622,7 @@ object SyntAnal6: TLibSyntAnalyzer
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Id props vendor'
+      DisplayName = 'Props vendor'
       StyleName = 'Prop correct'
       BlockType = btTagDetect
       ConditionList = <
@@ -2089,61 +2089,7 @@ object SyntAnal6: TLibSyntAnalyzer
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Id props SVG'
-      StyleName = 'Prop correct'
-      BlockType = btTagDetect
-      ConditionList = <
-        item
-          TagList.Strings = (
-            'alignment-baseline'
-            'baseline-shift'
-            'clip-rule'
-            'color-interpolation'
-            'color-interpolation-filters'
-            'color-profile'
-            'color-rendering'
-            'cx'
-            'cy'
-            'dominant-baseline'
-            'enable-background'
-            'fill'
-            'fill-opacity'
-            'fill-rule'
-            'flood-color'
-            'flood-opacity'
-            'glyph-orientation-horizontal'
-            'glyph-orientation-vertical'
-            'height'
-            'kerning'
-            'lighting-color'
-            'marker-end'
-            'marker-mid'
-            'marker-start'
-            'r'
-            'rx'
-            'ry'
-            'shape-rendering'
-            'stop-color'
-            'stop-opacity'
-            'stroke'
-            'stroke-dasharray'
-            'stroke-dashoffset'
-            'stroke-linecap'
-            'stroke-linejoin'
-            'stroke-miterlimit'
-            'stroke-opacity'
-            'stroke-width'
-            'text-anchor'
-            'width'
-            'x'
-            'y')
-          TokenTypes = 512
-        end>
-      HighlightPos = cpAny
-      IgnoreAsParent = False
-    end
-    item
-      DisplayName = 'Id colors'
+      DisplayName = 'Std colors'
       StyleName = 'Color'
       BlockName = '{'
       BlockType = btTagDetect
@@ -2322,7 +2268,7 @@ object SyntAnal6: TLibSyntAnalyzer
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Id units'
+      DisplayName = 'Std units'
       StyleName = 'Value unit'
       BlockType = btTagDetect
       ConditionList = <
@@ -2444,7 +2390,6 @@ object SyntAnal6: TLibSyntAnalyzer
             'inset'
             'invert'
             'lab'
-            'layer'
             'lch'
             'light-dark'
             'linear'
@@ -2486,7 +2431,6 @@ object SyntAnal6: TLibSyntAnalyzer
             'string-set'
             'styleset'
             'stylistic'
-            'supports'
             'swash'
             'symbols'
             'tan'
@@ -2563,7 +2507,7 @@ object SyntAnal6: TLibSyntAnalyzer
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Colors'
+      DisplayName = 'Color in tree'
       ConditionList = <
         item
           TokenTypes = 64
@@ -2575,7 +2519,7 @@ object SyntAnal6: TLibSyntAnalyzer
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Images'
+      DisplayName = 'Image in tree'
       BlockName = '{'
       ConditionList = <
         item
@@ -2588,14 +2532,14 @@ object SyntAnal6: TLibSyntAnalyzer
             'url')
           IgnoreCase = True
         end>
-      BlockEnd = 'Images end'
+      BlockEnd = 'Image end'
       NameFmt = '%s-1~s[)]1'
       GroupFmt = '\Images'
       HighlightPos = cpAny
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Images end'
+      DisplayName = 'Image end'
       BlockType = btRangeEnd
       ConditionList = <
         item
