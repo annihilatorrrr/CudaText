@@ -216,10 +216,19 @@ object SyntAnal6: TLibSyntAnalyzer
       ColumnTo = 0
     end
     item
-      DisplayName = 'Prop out of {}'
+      DisplayName = 'Prop in @media{}'
+      StyleName = 'Prop incorrect'
+      BlockName = '@media {'
+      TokenType = 9
+      Expression = '[\w\-]+(?=\x20*\:)'
+      ColumnFrom = 0
+      ColumnTo = 0
+    end
+    item
+      DisplayName = 'Prop out of blocks'
       StyleName = 'Prop correct'
       TokenType = 12
-      Expression = '[\w\-]+(?=\x20*\:)'
+      Expression = '[\w\-]+(?=\x20*\:\x20)'
       ColumnFrom = 0
       ColumnTo = 0
     end
@@ -2531,7 +2540,7 @@ object SyntAnal6: TLibSyntAnalyzer
         end
         item
           CondType = tcSkip
-          TokenTypes = 54940
+          TokenTypes = 45596
         end
         item
           TokenTypes = 32
@@ -2635,7 +2644,7 @@ object SyntAnal6: TLibSyntAnalyzer
   SampleText.Strings = (
     '/* Comment */'
     '<?php echo '#39'test'#39' ?>'
-    '#name, .name::after, pre { '
+    '#name .name::after pre a:hover { '
     '  font-size: 10em + 2.em;'
     '  --my-var: -10.2e+2; /* custom prop; float */'
     '  background: url("../img.gif") no-repeat;'
@@ -2645,9 +2654,7 @@ object SyntAnal6: TLibSyntAnalyzer
     '  -ms-hmm: Olive+yellow;'
     '}'
     ''
-    
-      '@media screen and (-ms-high-contrast: active), (-ms-high-contras' +
-      't: none) {'
+    '@media screen and (-ms-high-contrast: active) {'
     '    .input_size_m .input__control {'
     '        border-left: 10px solid transparent !important'
     '   }'
