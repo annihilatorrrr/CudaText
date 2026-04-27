@@ -2353,6 +2353,7 @@ object SyntAnal6: TLibSyntAnalyzer
             'symbols'
             'tan'
             'url'
+            'var'
             'variant')
           TokenTypes = 16384
         end>
