@@ -2293,7 +2293,7 @@ object SyntAnal6: TLibSyntAnalyzer
             'blur'
             'brightness'
             'calc'
-            'character'
+            'character-variant'
             'clamp'
             'content'
             'contrast'
@@ -2354,7 +2354,7 @@ object SyntAnal6: TLibSyntAnalyzer
             'tan'
             'url'
             'variant')
-          TokenTypes = 4
+          TokenTypes = 16384
         end>
       HighlightPos = cpAny
       IgnoreAsParent = False
