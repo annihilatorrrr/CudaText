@@ -218,7 +218,6 @@ object SyntAnal6: TLibSyntAnalyzer
     item
       DisplayName = 'Prop others'
       StyleName = 'Prop correct'
-      BlockName = '{'
       TokenType = 12
       Expression = '[\w\-]+(?=\x20*\:)'
       ColumnFrom = 0
@@ -288,7 +287,6 @@ object SyntAnal6: TLibSyntAnalyzer
     item
       DisplayName = 'Value'
       StyleName = 'Value'
-      BlockName = '{'
       TokenType = 14
       Expression = '\w[\w\-]*'
       ColumnFrom = 0
@@ -2212,7 +2210,6 @@ object SyntAnal6: TLibSyntAnalyzer
       ConditionList = <
         item
           TagList.Strings = (
-            '%'
             'cap'
             'ch'
             'cm'
@@ -2270,20 +2267,24 @@ object SyntAnal6: TLibSyntAnalyzer
             'vi'
             'vmax'
             'vmin'
-            'vw')
+            'vw'
+            'x')
           TokenTypes = 1024
         end>
       HighlightPos = cpAny
       IgnoreAsParent = False
     end
     item
-      DisplayName = 'Id std funcs'
+      DisplayName = 'Std funcs'
       StyleName = 'Std function'
       BlockType = btTagDetect
       ConditionList = <
         item
           TagList.Strings = (
+            'abs'
             'acos'
+            'anchor'
+            'anchor-size'
             'and'
             'annotation'
             'asin'
@@ -2293,36 +2294,46 @@ object SyntAnal6: TLibSyntAnalyzer
             'blur'
             'brightness'
             'calc'
+            'calc-size'
             'character-variant'
+            'circle'
             'clamp'
-            'content'
+            'color-contrast'
+            'color-mix'
+            'conic-gradient'
             'contrast'
             'cos'
             'counter'
             'counters'
-            'cross'
-            'drop'
+            'cross-fade'
+            'drop-shadow'
             'element'
+            'ellipse'
+            'env'
             'exp'
-            'fade'
-            'fit'
+            'fit-content'
             'font-format'
             'font-tech'
             'format'
             'grayscale'
             'hsl'
             'hsla'
-            'hue'
+            'hue-rotate'
             'hwb'
             'hypot'
             'image'
+            'image-set'
+            'inset'
             'invert'
             'lab'
             'layer'
             'lch'
             'light-dark'
+            'linear'
+            'linear-gradient'
             'local'
             'log'
+            'matrix'
             'max'
             'min'
             'minmax'
@@ -2331,7 +2342,13 @@ object SyntAnal6: TLibSyntAnalyzer
             'oklch'
             'opacity'
             'ornaments'
+            'paint'
+            'palette-mix'
+            'path'
+            'polygon'
             'pow'
+            'radial-gradient'
+            'registerProp'
             'rem'
             'repeat'
             'rgb'
@@ -2339,22 +2356,29 @@ object SyntAnal6: TLibSyntAnalyzer
             'rotate'
             'round'
             'saturate'
+            'scale'
+            'scroll'
             'selector'
             'sepia'
-            'set'
             'shadow'
             'sign'
             'sin'
+            'skew'
             'sqrt'
+            'string-set'
             'styleset'
             'stylistic'
             'supports'
             'swash'
             'symbols'
             'tan'
+            'target-counter'
+            'target-text'
+            'translate'
             'url'
             'var'
-            'variant')
+            'variant'
+            'view')
           TokenTypes = 16384
         end>
       HighlightPos = cpAny
