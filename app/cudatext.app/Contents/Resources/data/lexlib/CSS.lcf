@@ -227,8 +227,9 @@ object SyntAnal6: TLibSyntAnalyzer
     item
       DisplayName = 'Prop out of blocks'
       StyleName = 'Prop correct'
+      BlockName = '('
       TokenType = 12
-      Expression = '[\w\-]+(?=\x20*\:\x20)'
+      Expression = '[\w\-]+(?=\x20*\:)'
       ColumnFrom = 0
       ColumnTo = 0
     end
@@ -2540,7 +2541,7 @@ object SyntAnal6: TLibSyntAnalyzer
         end
         item
           CondType = tcSkip
-          TokenTypes = 45596
+          TokenTypes = 46812
         end
         item
           TokenTypes = 32
@@ -2588,6 +2589,33 @@ object SyntAnal6: TLibSyntAnalyzer
           TokenTypes = 1
         end>
       HighlightPos = cpBound
+      IgnoreAsParent = False
+    end
+    item
+      DisplayName = '('
+      ConditionList = <
+        item
+          TagList.Strings = (
+            '(')
+          TokenTypes = 8
+        end>
+      BlockEnd = ')'
+      NotCollapsed = True
+      DisplayInTree = False
+      HighlightPos = cpAny
+      CollapseFmt = '( ... )'
+      IgnoreAsParent = False
+    end
+    item
+      DisplayName = ')'
+      BlockType = btRangeEnd
+      ConditionList = <
+        item
+          TagList.Strings = (
+            ')')
+          TokenTypes = 8
+        end>
+      HighlightPos = cpAny
       IgnoreAsParent = False
     end
     item
