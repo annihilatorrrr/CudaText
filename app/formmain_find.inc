@@ -1343,8 +1343,8 @@ begin
       'Hi', PyHelper_ObjectHandle(fmFind.chkHiAll),
       'Im', PyHelper_ObjectHandle(fmFind.chkImmediate),
       'PreserveCase', PyHelper_ObjectHandle(fmFind.chkPreserveCase),
-      'EdFind', PyHelper_ObjectHandle(fmFind.edFind),
-      'EdRep', PyHelper_ObjectHandle(fmFind.edRep)
+      'EditorFind', PyHelper_ObjectHandle(fmFind.edFind),
+      'EditorReplace', PyHelper_ObjectHandle(fmFind.edRep)
       );
   end;
 end;
