@@ -82,14 +82,14 @@ Event handlers (Command.on_nnnnn methods) return-value is ignored is many cases,
 * <code>on_state_ed(self, ed_self, state)</code>: Called after some editor state is changed. Param "state" is one of EDSTATE_nnnn constants.
 
 * <code>on_state_findbar(self, ed_self, state, value)</code>: Called after some Find-dialog state is changed. Param "ed_self" is None. Param "state" is str, possible values are:
-** "focus" - called after focus was changed; param "value" is "edFind" or "edRep".
-** "opt" - called after dialog option was changed; param "value" is name of option.
-** "cmd" - called after command was executed; param "value" is name of command.
-** "cmd_pre" - called when command is about to execute; param "value" is name of command; if handler returns False, command will be blocked, other return value is ignored.
-** "is_rep" - called on changing "is replace" mode of dialog; param "value" is "0" (replace-mode is off) or "1" (on).
+** "focus" - called after focus was changed; param "value" is control's name: "edFind" or "edRep".
+** "opt" - called after dialog option was changed; param "value" is option's name.
+** "cmd" - called after command was executed; param "value" is command's name.
+** "cmd_pre" - called when command is about to execute; param "value" is command's name; if handler returns False, command will be blocked, other return value is ignored.
+** "is_rep" - called on changing "is replace" mode of dialog; param "value" is "0" (replace-mode is off) or "1" (replace-mode is on).
 ** "show" - called after dialog shows.
 ** "hide" - called after dialog hides.
-** "menu_more_show" - called after popup-menu for the "..." button was inited and is about to show (popup); if handler returns False, showing of popup-menu will be disabled.
+** "menu_more_show" - called after popup-menu for the "..." button was inited and is about to show (popup); if handler returns False, showing of popup-menu will be blocked, other return value is ignored.
 
 Constants in "on_state":
 
