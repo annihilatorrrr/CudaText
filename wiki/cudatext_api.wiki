@@ -89,6 +89,7 @@ Event handlers (Command.on_nnnnn methods) return-value is ignored is many cases,
 ** "is_rep" - called on changing "is replace" mode of dialog; param "value" is "0" (replace-mode is off) or "1" (on).
 ** "show" - called after dialog shows.
 ** "hide" - called after dialog hides.
+** "menu_more_show" - called after popup-menu for the "..." button was inited and is about to show (popup).
 
 Constants in "on_state":
 
@@ -5339,5 +5340,6 @@ It provides:
 
 1.0.479 (app 1.234.1)
 * add: app_proc: result of PROC_GET_FINDER_BUTTONS returns also 2 new fields: handles of find/replace input fields
+* add: on_state_findbar: added "state" value "menu_more_show"
 
 [[Category:CudaText]]
