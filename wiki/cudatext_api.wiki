@@ -249,7 +249,7 @@ Parameter "text" is usually string, but can be of other types (bool, int, float,
 * PROC_GET_VALIDATE_FORM: Returns int handle of built-in Validate form (contains the Validate read-only editor). Use <code>dlg_proc()</code> to work with it.
 * PROC_GET_MAIN_TOOLBAR: Returns int handle of main app toolbar. Use <code>toolbar_proc()</code> to work with it.
 * PROC_GET_MAIN_STATUSBAR: Returns int handle of main app statusbar. Use <code>statusbar_proc()</code> to work with it.
-* PROC_GET_FINDER_BUTTONS: Returns dict containing handles of all Find-dialog buttons. These handles are compatible with <code>button_proc()</code>. Dict keys are self-explaining. Returns None if Find-dialog is not yet inited.
+* PROC_GET_FINDER_BUTTONS: Returns dict containing handles of Find/Replace-dialog buttons and input-fields. Handles of buttons are compatible with <code>button_proc()</code> API, and handles of input-fields are compatible with <code>Editor()</code> API. Dict keys are self-explaining. Returns None if Find-dialog is not yet inited.
 
 ====app_proc - Misc properties====
 
