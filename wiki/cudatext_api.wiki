@@ -250,7 +250,7 @@ Parameter "text" is usually string, but can be of other types (bool, int, float,
 * PROC_GET_VALIDATE_FORM: Returns int handle of built-in Validate form (contains the Validate read-only editor). Use <code>dlg_proc()</code> to work with it.
 * PROC_GET_MAIN_TOOLBAR: Returns int handle of main app toolbar. Use <code>toolbar_proc()</code> to work with it.
 * PROC_GET_MAIN_STATUSBAR: Returns int handle of main app statusbar. Use <code>statusbar_proc()</code> to work with it.
-* PROC_GET_FINDER_BUTTONS: Returns dict containing handles of Find/Replace-dialog GUI controls: 1) handles of buttons (they are compatible with <code>button_proc()</code> API); 2) handles of Find and Replace input fields (they are compatible with <code>Editor()</code> API); 3) handle of "..." popup-menu (it is compatible with <code>menu_proc()</code> API) if menu was inited already (otherwise None). Dict keys are self-explaining. Returns None if Find/Replace-dialog is not yet inited.
+* PROC_GET_FINDER_HANDLES: Returns dict containing handles of Find/Replace-dialog GUI controls: 1) handles of buttons (they are compatible with <code>button_proc()</code> API); 2) handles of Find and Replace input fields (they are compatible with <code>Editor()</code> API); 3) handle of "..." popup-menu (it is compatible with <code>menu_proc()</code> API) if menu was inited already (otherwise None). Dict keys are self-explaining. Returns None if Find/Replace-dialog is not yet inited.
 
 ====app_proc - Misc properties====
 
@@ -5339,8 +5339,9 @@ It provides:
 * add: Editor.get_prop/set_prop: PROP_LINE_SPACE2
 
 1.0.479 (app 1.234.1)
-* add: app_proc: PROC_GET_FINDER_BUTTONS returns also handles of find/replace input fields
-* add: app_proc: PROC_GET_FINDER_BUTTONS returns also handle of '...' popup-menu
+* change: rename PROC_GET_FINDER_BUTTONS to PROC_GET_FINDER_HANDLES (none public plugins did use that id)
+* add: app_proc: PROC_GET_FINDER_HANDLES returns also handles of find/replace input fields
+* add: app_proc: PROC_GET_FINDER_HANDLES returns also handle of '...' popup-menu
 * add: on_state_findbar: added "state" value "dots_show_pre"
 
 [[Category:CudaText]]

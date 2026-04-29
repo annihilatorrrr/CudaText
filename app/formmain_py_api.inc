@@ -5578,7 +5578,7 @@ begin
             Result:= ReturnNone;
           end;
 
-        APP_PROC_GET_FINDER_BUTTONS:
+        APP_PROC_GET_FINDER_HANDLES:
           begin
             Result:= fmMain.FindDialog_GetButtonsPyDict;
           end;
