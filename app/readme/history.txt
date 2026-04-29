@@ -5,7 +5,7 @@
 
 1.234.1 (2026/05)
 
-* change: ui-tab-bar buttons '< >': react on mouse-down, not mouse-up; while mouse btn is pressed, scroll left/right by timer, like in Sublime (idea by @archon66498)
+* change: tab-bar buttons '< >' now react on mouse-down, not mouse-up; while mouse btn is pressed, scroll by timer, like in Firefox (idea by @archon66498)
 + add: new API which allows to make tiny plugin: it selects all text of the Find-dialog input-field, after pressing Find-buttons, like in Notepad++ (idea by @karhu)
 + add: menu "File / Line ends" shows more detailed items: "Linux/Unix (LF) / Windows (CRLF) / Mac OS 9 (CR)" (idea by @iconv)
 + add: lexer CSS shows usual {}-blocks in the code-tree (idea by @BetoValle)
