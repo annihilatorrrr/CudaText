@@ -692,7 +692,7 @@ begin
   InitPopupMore;
   P:= bMore.ClientToScreen(Point(0, 0));
   UpdateMenuTheming_PopupMenu_Win32(FPopupMore);
-  if not FOnPyEvent('menu_more_show', '') then Exit;
+  if not FOnPyEvent('dots_show_pre', Format('pos_x=%d;pos_y=%d;', [P.X, P.Y])) then Exit;
   FPopupMore.Popup(P.X, P.Y);
 end;
 

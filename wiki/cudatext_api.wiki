@@ -89,7 +89,7 @@ Event handlers (Command.on_nnnnn methods) return-value is ignored is many cases,
 ** "is_rep" - called on changing "is replace" mode of dialog; param "value" is "0" (replace-mode is off) or "1" (replace-mode is on).
 ** "show" - called after dialog shows.
 ** "hide" - called after dialog hides.
-** "menu_more_show" - called after popup-menu for the "..." button was inited and is about to show (popup); if handler returns False, showing of popup-menu will be blocked, other return value is ignored.
+** "dots_show_pre" - called after popup-menu for the "..." button was inited and is about to show (popup); if handler returns False, showing of popup-menu will be blocked, other return value is ignored.
 
 Constants in "on_state":
 
@@ -5341,6 +5341,6 @@ It provides:
 1.0.479 (app 1.234.1)
 * add: app_proc: PROC_GET_FINDER_BUTTONS returns also handles of find/replace input fields
 * add: app_proc: PROC_GET_FINDER_BUTTONS returns also handle of '...' popup-menu
-* add: on_state_findbar: added "state" value "menu_more_show"
+* add: on_state_findbar: added "state" value "dots_show_pre"
 
 [[Category:CudaText]]
