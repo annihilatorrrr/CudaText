@@ -251,15 +251,15 @@ object SyntAnal6: TLibSyntAnalyzer
       StyleName = 'Pseudo'
       TokenType = 13
       Expression = 
-        '(?-i):(active|any-link|autofill|blank|checked|current|default|de' +
-        'fined|dir|disabled|empty|enabled|first-child|first-of-type|first' +
-        '|focus-visible|focus-within|focus|future|has|host|host-context|h' +
-        'over|in-range|indeterminate|invalid|is|lang|last-child|last-of-t' +
-        'ype|left|link|local-link|not|nth-child|nth-last-child|nth-last-o' +
-        'f-type|nth-of-type|only-child|only-of-type|optional|out-of-range' +
-        '|past|paused|placeholder-shown|playing|read-only|read-write|requ' +
-        'ired|right|root|scope|target-within|target|user-invalid|valid|vi' +
-        'sited|where)\b'
+        '(?-i):(active|after|any-link|autofill|before|blank|checked|curre' +
+        'nt|default|defined|dir|disabled|empty|enabled|first-child|first-' +
+        'line|first-letter|first-of-type|first|focus-visible|focus-within' +
+        '|focus|future|has|host|host-context|hover|in-range|indeterminate' +
+        '|invalid|is|lang|last-child|last-of-type|left|link|local-link|no' +
+        't|nth-child|nth-last-child|nth-last-of-type|nth-of-type|only-chi' +
+        'ld|only-of-type|optional|out-of-range|past|paused|placeholder-sh' +
+        'own|playing|read-only|read-write|required|right|root|scope|targe' +
+        't-within|target|user-invalid|valid|visited|where)\b'
       ColumnFrom = 0
       ColumnTo = 0
     end
