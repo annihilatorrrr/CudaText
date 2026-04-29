@@ -5337,4 +5337,7 @@ It provides:
 * add: Editor.get_prop/set_prop: PROP_LINE_SPACE1
 * add: Editor.get_prop/set_prop: PROP_LINE_SPACE2
 
+1.0.479 (app 1.234.1)
+* add: app_proc: result of PROC_GET_FINDER_BUTTONS returns also 2 new fields: handles of find/replace input fields
+
 [[Category:CudaText]]
