@@ -5,7 +5,7 @@ cd ../app
 cpu=$1
 outdir=$2
 exedir=$3
-pydir=$4
+pydir=$outdir/lib_win_$cpu
 
 if [[ "$pydir" == "" ]]; then
   echo "Need script params"
