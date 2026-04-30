@@ -5338,7 +5338,7 @@ It provides:
 * add: Editor.get_prop/set_prop: PROP_LINE_SPACE1
 * add: Editor.get_prop/set_prop: PROP_LINE_SPACE2
 
-1.0.479 (app 1.234.1)
+1.0.479 (app 1.234.2)
 * change: rename PROC_GET_FINDER_BUTTONS to PROC_GET_FINDER_HANDLES (none public plugins did use that id)
 * add: app_proc: PROC_GET_FINDER_HANDLES returns also handles of find/replace input fields
 * add: app_proc: PROC_GET_FINDER_HANDLES returns also handle of '...' popup-menu
