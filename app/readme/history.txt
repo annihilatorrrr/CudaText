@@ -3,7 +3,7 @@
   - fixed
   * changed
 
-1.234.1 (2026/05)
+1.234.2 (2026/05)
 
 * change: tab-bar buttons '< >' now react on mouse-down, not mouse-up; while mouse btn is pressed, scroll by timer, like in Firefox (idea by @archon66498)
 + add: new API which allows to make tiny plugin: it selects all text of the Find-dialog input-field, after pressing Find-buttons, like in Notepad++ (idea by @karhu)
