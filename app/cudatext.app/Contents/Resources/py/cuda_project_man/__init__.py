@@ -1031,7 +1031,7 @@ class Command:
                 spath = path.path
             is_dir = path.is_dir()
             sname = path.name
-            if is_win_root(spath):
+            if is_win_root(spath) or (not sname):
                 sname = spath
             elif self.options.get("no_hidden", True) and is_hidden(spath):
                 continue
