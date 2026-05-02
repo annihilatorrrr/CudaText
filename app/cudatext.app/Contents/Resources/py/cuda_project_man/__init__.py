@@ -226,8 +226,8 @@ class Command:
         ("-", "nodes", [None, NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD], "", ""),
         (_("Clear project..."), "nodes", [None, NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD], "cuda_project_man.action_clear_project", ""),
         ("-", "nodes", [None, NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD], "", ""),
-        (_("Remove node"), "nodes", [None, NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD], "cuda_project_man.action_remove_node", ""),
-        (_("Remove deleted nodes..."), "nodes", [None, NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD], "cuda_project_man.action_remove_deleted_nodes", ""),
+        (_("Remove root node"), "nodes", [None, NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD], "cuda_project_man.action_remove_node", ""),
+        (_("Remove deleted root nodes..."), "nodes", [None, NODE_PROJECT, NODE_DIR, NODE_FILE, NODE_BAD], "cuda_project_man.action_remove_deleted_nodes", ""),
 
         (_("New file..."), "dir", [NODE_DIR], "cuda_project_man.action_new_file", S_CTRL_NAME + "+N"),
         (_("New folder..."), "dir", [NODE_DIR], "cuda_project_man.action_new_directory", "F7"),
@@ -1175,12 +1175,18 @@ class Command:
                 break
             index = prop["parent"]
 
+        # fix for network UNC paths '\\server\share\'
+        if path.endswith('\\'):
+            path = path[:-1]
+
         tree_proc(self.tree, TREE_ITEM_DELETE, index)
-        if str(path) in self.project["nodes"]:
-            self.project["nodes"].remove(str(path))
-            if (self.cur_dir+os.sep).startswith(str(path)+os.sep):
+        if path in self.project["nodes"]:
+            self.project["nodes"].remove(path)
+            if (self.cur_dir+os.sep).startswith(path+os.sep):
                 app_proc(PROC_SET_FOLDER, '')
                 self.cur_dir = ''
+        else:
+            msg_box(_('Cannot find path "%s" in root nodes list') % path, MB_OK or MB_ICONERROR)
 
         if self.project_file_path:
             self.action_save_project_as(self.project_file_path)
