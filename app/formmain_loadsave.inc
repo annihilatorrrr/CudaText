@@ -619,12 +619,15 @@ begin
   SSplitByChar(ASessionId, '|', sSessionFileName, sRootPath);
   if not FileExists(sSessionFileName) then exit;
 
+  //2026.07: block is commented to avoid session-saving during session-loading, issue #6360
+  {
   //fix issue #3734
   if not IsDefaultSessionActive then
   begin
     if not SameFileName(ASessionId, AppFile_Session) then //fix issue #3744
       DoOps_SaveSession(AppFile_Session, false, false, false);
   end;
+  }
 
   nCountFilesBefore:= FrameCount;
   if nCountFilesBefore=1 then
